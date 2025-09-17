@@ -1,0 +1,126 @@
+2025-09-17 15:57:45,656 - solar - INFO - Layer: weight_main, Parameters: 1
+2025-09-17 15:57:45,656 - solar - INFO - Layer: weight_residual, Parameters: 1
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.feature_fusion_seasonal.weight, Parameters: 73728
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.feature_fusion_seasonal.bias, Parameters: 96
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.enc_embedding.value_embedding.weight, Parameters: 12288
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.enc_embedding.value_embedding.bias, Parameters: 128
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.query_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.query_projection.bias, Parameters: 128
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.key_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.key_projection.bias, Parameters: 128
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.value_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.value_projection.bias, Parameters: 128
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.out_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,656 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.attention.out_projection.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.conv1.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.conv1.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.conv2.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.conv2.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.norm1.weight, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.norm1.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.norm2.weight, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.attn_layers.0.norm2.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.norm.weight, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.encoder.norm.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.projection.weight, Parameters: 1024
+2025-09-17 15:57:45,657 - solar - INFO - Layer: main_freq_model.projection.bias, Parameters: 8
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.feature_fusion_seasonal.weight, Parameters: 73728
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.feature_fusion_seasonal.bias, Parameters: 96
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.enc_embedding.value_embedding.weight, Parameters: 12288
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.enc_embedding.value_embedding.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.query_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.query_projection.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.key_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.key_projection.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.value_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.value_projection.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.out_projection.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.attention.out_projection.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.conv1.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.conv1.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.conv2.weight, Parameters: 16384
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.conv2.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.norm1.weight, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.norm1.bias, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.norm2.weight, Parameters: 128
+2025-09-17 15:57:45,657 - solar - INFO - Layer: residual_model.encoder.attn_layers.0.norm2.bias, Parameters: 128
+2025-09-17 15:57:45,658 - solar - INFO - Layer: residual_model.encoder.norm.weight, Parameters: 128
+2025-09-17 15:57:45,658 - solar - INFO - Layer: residual_model.encoder.norm.bias, Parameters: 128
+2025-09-17 15:57:45,658 - solar - INFO - Layer: residual_model.projection.weight, Parameters: 1024
+2025-09-17 15:57:45,658 - solar - INFO - Layer: residual_model.projection.bias, Parameters: 8
+2025-09-17 15:57:45,658 - solar - INFO - All Parameters Num: 50, All Numel:374226
+2025-09-17 16:00:51,735 - solar - INFO - Epoch: 1 cost time:3.0 min | Train: 0.0880698 Vali: 0.0479428 test: 0.0429093
+2025-09-17 16:00:51,735 - solar - INFO - Validation loss decreased (inf --> 0.047943).  Saving model ...
+2025-09-17 16:00:51,739 - solar - INFO - Group 0 lr: 0.0001000000
+2025-09-17 16:03:53,633 - solar - INFO - Epoch: 2 cost time:3.0 min | Train: 0.0377890 Vali: 0.0326531 test: 0.0283026
+2025-09-17 16:03:53,633 - solar - INFO - Validation loss decreased (0.047943 --> 0.032653).  Saving model ...
+2025-09-17 16:03:53,638 - solar - INFO - Group 0 lr: 0.0000980000
+2025-09-17 16:06:55,765 - solar - INFO - Epoch: 3 cost time:3.0 min | Train: 0.0317609 Vali: 0.0310577 test: 0.0267694
+2025-09-17 16:06:55,765 - solar - INFO - Validation loss decreased (0.032653 --> 0.031058).  Saving model ...
+2025-09-17 16:06:55,770 - solar - INFO - Group 0 lr: 0.0000960400
+2025-09-17 16:09:57,398 - solar - INFO - Epoch: 4 cost time:3.0 min | Train: 0.0304430 Vali: 0.0306068 test: 0.0265182
+2025-09-17 16:09:57,398 - solar - INFO - Validation loss decreased (0.031058 --> 0.030607).  Saving model ...
+2025-09-17 16:09:57,402 - solar - INFO - Group 0 lr: 0.0000941192
+2025-09-17 16:12:59,171 - solar - INFO - Epoch: 5 cost time:3.0 min | Train: 0.0297449 Vali: 0.0307427 test: 0.0265498
+2025-09-17 16:12:59,171 - solar - INFO - EarlyStopping counter: 1 out of 10
+2025-09-17 16:12:59,171 - solar - INFO - Group 0 lr: 0.0000922368
+2025-09-17 16:16:00,452 - solar - INFO - Epoch: 6 cost time:3.0 min | Train: 0.0292619 Vali: 0.0307611 test: 0.0262714
+2025-09-17 16:16:00,452 - solar - INFO - EarlyStopping counter: 2 out of 10
+2025-09-17 16:16:00,452 - solar - INFO - Group 0 lr: 0.0000903921
+2025-09-17 16:19:03,854 - solar - INFO - Epoch: 7 cost time:3.1 min | Train: 0.0288489 Vali: 0.0308919 test: 0.0264947
+2025-09-17 16:19:03,854 - solar - INFO - EarlyStopping counter: 3 out of 10
+2025-09-17 16:19:03,854 - solar - INFO - Group 0 lr: 0.0000885842
+2025-09-17 16:22:07,052 - solar - INFO - Epoch: 8 cost time:3.1 min | Train: 0.0285592 Vali: 0.0306110 test: 0.0262262
+2025-09-17 16:22:07,052 - solar - INFO - EarlyStopping counter: 4 out of 10
+2025-09-17 16:22:07,052 - solar - INFO - Group 0 lr: 0.0000868126
+2025-09-17 16:25:08,468 - solar - INFO - Epoch: 9 cost time:3.0 min | Train: 0.0283193 Vali: 0.0305601 test: 0.0262197
+2025-09-17 16:25:08,468 - solar - INFO - Validation loss decreased (0.030607 --> 0.030560).  Saving model ...
+2025-09-17 16:25:08,473 - solar - INFO - Group 0 lr: 0.0000850763
+2025-09-17 16:28:10,552 - solar - INFO - Epoch: 10 cost time:3.0 min | Train: 0.0280955 Vali: 0.0308325 test: 0.0264859
+2025-09-17 16:28:10,552 - solar - INFO - EarlyStopping counter: 1 out of 10
+2025-09-17 16:28:10,552 - solar - INFO - Group 0 lr: 0.0000833748
+2025-09-17 16:31:13,987 - solar - INFO - Epoch: 11 cost time:3.1 min | Train: 0.0278920 Vali: 0.0306380 test: 0.0261767
+2025-09-17 16:31:13,987 - solar - INFO - EarlyStopping counter: 2 out of 10
+2025-09-17 16:31:13,987 - solar - INFO - Group 0 lr: 0.0000817073
+2025-09-17 16:34:17,294 - solar - INFO - Epoch: 12 cost time:3.1 min | Train: 0.0276948 Vali: 0.0304939 test: 0.0260537
+2025-09-17 16:34:17,294 - solar - INFO - Validation loss decreased (0.030560 --> 0.030494).  Saving model ...
+2025-09-17 16:34:17,298 - solar - INFO - Group 0 lr: 0.0000800731
+2025-09-17 16:37:21,716 - solar - INFO - Epoch: 13 cost time:3.1 min | Train: 0.0275594 Vali: 0.0306622 test: 0.0261640
+2025-09-17 16:37:21,717 - solar - INFO - EarlyStopping counter: 1 out of 10
+2025-09-17 16:37:21,717 - solar - INFO - Group 0 lr: 0.0000784717
+2025-09-17 16:40:25,539 - solar - INFO - Epoch: 14 cost time:3.1 min | Train: 0.0274310 Vali: 0.0305195 test: 0.0262256
+2025-09-17 16:40:25,540 - solar - INFO - EarlyStopping counter: 2 out of 10
+2025-09-17 16:40:25,540 - solar - INFO - Group 0 lr: 0.0000769022
+2025-09-17 16:43:28,215 - solar - INFO - Epoch: 15 cost time:3.0 min | Train: 0.0272713 Vali: 0.0303472 test: 0.0259641
+2025-09-17 16:43:28,215 - solar - INFO - Validation loss decreased (0.030494 --> 0.030347).  Saving model ...
+2025-09-17 16:43:28,220 - solar - INFO - Group 0 lr: 0.0000753642
+2025-09-17 16:46:32,022 - solar - INFO - Epoch: 16 cost time:3.1 min | Train: 0.0271572 Vali: 0.0306010 test: 0.0261451
+2025-09-17 16:46:32,022 - solar - INFO - EarlyStopping counter: 1 out of 10
+2025-09-17 16:46:32,022 - solar - INFO - Group 0 lr: 0.0000738569
+2025-09-17 16:49:34,092 - solar - INFO - Epoch: 17 cost time:3.0 min | Train: 0.0270491 Vali: 0.0310040 test: 0.0264470
+2025-09-17 16:49:34,093 - solar - INFO - EarlyStopping counter: 2 out of 10
+2025-09-17 16:49:34,093 - solar - INFO - Group 0 lr: 0.0000723798
+2025-09-17 16:52:35,636 - solar - INFO - Epoch: 18 cost time:3.0 min | Train: 0.0269372 Vali: 0.0310784 test: 0.0265672
+2025-09-17 16:52:35,636 - solar - INFO - EarlyStopping counter: 3 out of 10
+2025-09-17 16:52:35,636 - solar - INFO - Group 0 lr: 0.0000709322
+2025-09-17 16:55:38,823 - solar - INFO - Epoch: 19 cost time:3.1 min | Train: 0.0268201 Vali: 0.0307869 test: 0.0265616
+2025-09-17 16:55:38,823 - solar - INFO - EarlyStopping counter: 4 out of 10
+2025-09-17 16:55:38,823 - solar - INFO - Group 0 lr: 0.0000695135
+2025-09-17 16:58:42,362 - solar - INFO - Epoch: 20 cost time:3.1 min | Train: 0.0267493 Vali: 0.0307464 test: 0.0263011
+2025-09-17 16:58:42,362 - solar - INFO - EarlyStopping counter: 5 out of 10
+2025-09-17 16:58:42,362 - solar - INFO - Group 0 lr: 0.0000681233
+2025-09-17 17:01:49,585 - solar - INFO - Epoch: 21 cost time:3.1 min | Train: 0.0266438 Vali: 0.0311517 test: 0.0269050
+2025-09-17 17:01:49,585 - solar - INFO - EarlyStopping counter: 6 out of 10
+2025-09-17 17:01:49,585 - solar - INFO - Group 0 lr: 0.0000667608
+2025-09-17 17:04:54,958 - solar - INFO - Epoch: 22 cost time:3.1 min | Train: 0.0265699 Vali: 0.0312959 test: 0.0267448
+2025-09-17 17:04:54,958 - solar - INFO - EarlyStopping counter: 7 out of 10
+2025-09-17 17:04:54,959 - solar - INFO - Group 0 lr: 0.0000654256
+2025-09-17 17:07:58,382 - solar - INFO - Epoch: 23 cost time:3.1 min | Train: 0.0265016 Vali: 0.0309807 test: 0.0264712
+2025-09-17 17:07:58,382 - solar - INFO - EarlyStopping counter: 8 out of 10
+2025-09-17 17:07:58,382 - solar - INFO - Group 0 lr: 0.0000641171
+2025-09-17 17:11:02,219 - solar - INFO - Epoch: 24 cost time:3.1 min | Train: 0.0263960 Vali: 0.0306105 test: 0.0264004
+2025-09-17 17:11:02,219 - solar - INFO - EarlyStopping counter: 9 out of 10
+2025-09-17 17:11:02,219 - solar - INFO - Group 0 lr: 0.0000628347
+2025-09-17 17:14:08,493 - solar - INFO - Epoch: 25 cost time:3.1 min | Train: 0.0263415 Vali: 0.0309962 test: 0.0266789
+2025-09-17 17:14:08,493 - solar - INFO - EarlyStopping counter: 10 out of 10
+2025-09-17 17:14:08,493 - solar - INFO - Early stopping

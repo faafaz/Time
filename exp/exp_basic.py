@@ -6,7 +6,7 @@ import torch
 from torch.optim import lr_scheduler
 
 from models import Transformer, TimeXer, TimesNet, PatchTST, iTransformer, Informer, DLinear, Autoformer, TimeLLM, \
-    LLMMixer, TimeLLM_MSPF_GATEFUSION, WPMixer
+    LLMMixer, TimeLLM_MSPF_GATEFUSION, WPMixer, DualSignalModel
 from models.Q1_2019_CNN_LSTM import PV_CNN, PV_LSTM,PV_CNNLSTM
 from data_provider.data_loader import get_data_loader
 import torch.nn as nn
@@ -34,7 +34,8 @@ class Exp_Basic(ABC):
             "PV_CNN": PV_CNN,
             "PV_LSTM": PV_LSTM,
             "PV_CNNLSTM": PV_CNNLSTM,
-            "WPMixer": WPMixer
+            "WPMixer": WPMixer,
+            "DualSignalModel": DualSignalModel
         }
         # 日志
         logger = logging.getLogger('solar')

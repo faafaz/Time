@@ -6,7 +6,7 @@ from utils.run_tools import check_is_complete, clear_fold
 ----------------------------------------------------------------需要填写的运行参数---------------------------------------------------------------------------------
 """
 # 运行模式
-run_type = "0"  # 0:训练 1:测试
+run_type = "1"  # 0:训练 1:测试
 is_set_zero = False  # 是否将预测出来的负值置为0
 get_pred_type = "all"  # first:取第一个值 last:取最后一个值,all:取所有值
 
@@ -42,7 +42,7 @@ data = farm1
 # 配置需要执行的模型和权重
 model_dict = {
     # "Autoformer": "20250607_192408_Autoformer",
-    "DLinear": "20250914_225208_DLinear",
+    # "DLinear": "20250914_225208_DLinear",
     # "Informer": "20250607_194222_Informer",
     # "TimesNet": "20250607_195312_TimesNet",
     # "TimeXer": "20250915_131144_TimeXer",
@@ -58,7 +58,8 @@ model_dict = {
     # "PV_CNN": "20250727_231547_PV_CNN",
     # "PV_LSTM": "20250730_230805_PV_LSTM",
     # "PV_CNNLSTM": "20250731_134031_PV_CNNLSTM",
-    # "WPMixer": "20250916_135315_WPMixer"
+    # "WPMixer": "20250916_135315_WPMixer",
+    "DualSignalModel": "20250917_155745_DualSignalModel"
 }
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------

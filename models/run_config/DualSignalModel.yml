@@ -1,0 +1,16 @@
+# 模型基本信息
+model_name: "DualSignalModel"
+
+# 时间序列相关
+task_name: "ultra_short_term_forecast"
+seq_len: 96      # 输入序列时间步
+label_len: 0
+pred_len: 16     # 输出序列时间步
+
+# 网络结构参数
+n_input_features: 1
+dropout: 0.05
+
+# DualSignalModel特有参数
+freq_topk: 20    # 主频率成分提取的top-k频率
+base_model: "iTransformer"  # 基础模型类型, 可选: iTransformer/其他支持的模型
