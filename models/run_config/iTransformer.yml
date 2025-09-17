@@ -1,0 +1,34 @@
+# 模型基本信息
+model_name: "iTransformer"
+
+# 数据相关配置
+freq: "15min"
+
+# 时间序列相关
+task_name: "short_term_forecast"
+seq_len: 96      # 输入序列时间步
+pred_len: 16     # 输出序列时间步
+label_len: 0
+moving_avg: 25   # window size of moving average
+factor: 3        # attn factor
+
+
+
+# 网络结构参数
+enc_in: 1
+dec_in: 1
+c_out: 1
+embed_type: 0
+embed: "timeF"  # options: [timeF, fixed, learned]
+n_heads: 8
+e_layers: 2
+d_layers: 1
+dropout: 0.05
+output_attention: false  # whether to output attention in encoder
+activation: "gelu"
+distil: true  # 蒸馏（distilling）技术
+
+# iTransformer特有参数
+d_model: 512
+d_ff: 2048
+

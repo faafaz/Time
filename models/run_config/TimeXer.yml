@@ -1,0 +1,31 @@
+# 模型基本信息
+model_name: "TimeXer"
+
+# 数据相关配置
+freq: "15min"
+
+# 时间序列相关
+task_name: "short_term_forecast"
+seq_len: 96      # 输入序列时间步
+pred_len: 16     # 输出序列时间步
+label_len: 0
+
+
+# 网络结构参数
+features: "S"
+use_norm: true
+patch_len: 16
+n_heads: 8
+e_layers: 1
+d_model: 256
+d_ff: 256
+enc_in: 1
+dropout: 0.05
+output_attention: false  # whether to output attention in encoder
+activation: "gelu"
+
+
+
+
+
+

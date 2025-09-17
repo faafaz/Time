@@ -1,0 +1,36 @@
+# 模型基本信息
+model_name: "PatchTST"
+
+# 数据相关配置
+freq: "15min"
+
+# 时间序列相关
+task_name: "short_term_forecast"
+seq_len: 96      # 输入序列时间步
+label_len: 0
+pred_len: 16     # 输出序列时间步
+
+
+
+# 网络结构参数
+enc_in: 1
+d_model: 512
+n_heads: 8
+e_layers: 2
+d_ff: 2048
+dropout: 0.05
+activation: "gelu"
+
+# PatchTST特有参数
+fc_dropout: 0.05
+head_dropout: 0.0
+patch_len: 16        # 序列卷积的长度
+stride: 8            # 卷积步长
+padding_patch: "end" # None: None; end: padding on the end
+revin: 1             # RevIN; True 1 False 0
+affine: 0            # RevIN-affine; True 1 False 0
+subtract_last: 0     # 0: subtract mean; 1: subtract last
+decomposition: 0     # decomposition; True 1 False 0
+kernel_size: 25      # decomposition-kernel
+individual: 0        # individual head; True 1 False 0
+

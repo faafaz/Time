@@ -1,0 +1,33 @@
+# 模型基本信息
+model_name: "LLMMixer"
+
+# 数据相关配置
+freq: "15min"  # 频率
+
+
+# 时间序列相关
+seq_len: 96      # 输入序列时间步
+label_len: 0
+pred_len: 16     # 预测长度/输出序列时间步
+moving_avg: 25   # window size of moving average
+
+
+# 网络结构参数
+e_layers: 2            # encoder层数
+d_model: 16            # 模型维度
+d_ff: 32               # 前馈网络维度
+enc_in: 1              # encoder输入维度
+c_out: 1               # 输出维度
+embed_type: "timeF"         # options: [timeF, fixed, learned]
+dropout: 0.1           # 辍学率
+channel_independence: 1
+
+# LLM相关配置
+llm_layers: 32         # 大模型的hidden层数
+llm_name: "BERT"
+
+# Mixer特有配置
+down_sampling_method: "avg"     # 下采样方法
+use_future_temporal_feature: 0  # 是否使用未来时间特征
+down_sampling_window: 2         # 采样率
+down_sampling_layers: 3         # 采样层数

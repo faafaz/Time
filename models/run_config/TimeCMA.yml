@@ -1,0 +1,19 @@
+# 数据相关配置
+channel: 32
+num_nodes: 7
+seq_len: 96
+pred_len: 96
+
+# 训练相关配置
+dropout_n: 0.2
+weight_decay: 0.001
+
+# 网络结构参数
+d_llm: 768
+e_layer: 1
+d_layer: 1
+head: 8
+
+# 模型配置
+model_name: "gpt2"
+

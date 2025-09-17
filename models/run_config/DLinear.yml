@@ -1,0 +1,19 @@
+# 模型基本信息
+model_name: "DLinear"
+
+
+# 时间序列相关
+task_name: "short_term_forecast"
+seq_len: 96      # 输入序列时间步
+label_len: 0
+pred_len: 16     # 输出序列时间步
+
+
+# 网络结构参数
+n_input_features: 1
+dropout: 0.05
+
+# DLinear特有参数
+individual: false
+
+

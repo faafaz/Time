@@ -1,0 +1,9 @@
+# 模型基本信息
+model_name: "PV_CNNLSTM"
+
+# 数据相关配置
+freq: "15min"
+
+seq_len: 96      # 输入序列时间步
+label_len: 0
+pred_len: 16     # 输出序列时间步
