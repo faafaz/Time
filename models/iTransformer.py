@@ -67,7 +67,7 @@ class Model(nn.Module):
         # (batch_size, seq_len, 1) -> (batch_size, 1, 1) 计算序列标准差
         stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
         # (batch_size, seq_len, 1) 除以 (batch_size, 1, 1) 除以标准差进行归一化
-        x_enc /= stdev
+        x_enc = x_enc / stdev
 
         _, _, N = x_enc.shape
 
@@ -93,9 +93,11 @@ class Model(nn.Module):
         dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         return dec_out
 
-    def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None): 
+    def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
         if self.task_name == 'ultra_short_term_forecast' or self.task_name == 'short_term_forecast' or self.task_name == 'long_term_forecast':
-            x_enc = x_enc[:, :, 1:]  
+            # 只有当特征数大于1时才切片，避免单特征时维度消失
+            if x_enc.shape[2] > 1:
+                x_enc = x_enc[:, :, 1:]
             dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
             return dec_out[:, :, 0:1]  # [B, L, D]
 

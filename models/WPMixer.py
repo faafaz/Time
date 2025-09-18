@@ -27,7 +27,7 @@ class Model(nn.Module):
                             tfactor = 5, 
                             dfactor = 5, 
                             wavelet = "db2", 
-                            level = 3, 
+                            level = 2, 
                             patch_len = 16,
                             stride = 8, 
                             no_decomposition = False,
