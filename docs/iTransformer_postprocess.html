@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>iTransformer 后处理架构图</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif; margin: 24px; }
+    h1 { font-size: 20px; margin-bottom: 12px; }
+    .desc { color: #444; margin: 8px 0 20px; }
+    .mermaid { border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; }
+  </style>
+  <!-- Mermaid CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+</head>
+<body>
+  <h1>iTransformer 后处理（enc_out → 反投影 → xLSTM → 时间投影 → 输出 → 反归一化）</h1>
+  <div class="desc">来源：models/iTransformer_xLSTM_VMD_Preprocessed.py（后处理从 enc_out 开始，覆盖 BackProjection、permute、xLSTMStack、time_proj、head、反归一化）。</div>
+  <div class="mermaid">
+  flowchart LR
+    subgraph encoder_output [iTransformer 编码输出]
+      E["enc_out (B, n_vars, d_model)"]
+    end
+    subgraph postproc [后处理]
+      BP["BackProjection 线性映射 d_model→L<br/>输出: (B, n_vars, L)"]
+      Perm["维度变换 permute → (B, L, n_vars)"]
+      XLSTM["xLSTMStack (rnn_type=sLSTM, layers=2, hidden=H)<br/>输出: (B, L, H)"]
+      T1["转置 → (B, H, L)"]
+      TP["time_proj 线性映射 L→pred_len<br/>输出: (B, H, pred_len)"]
+      T2["转置 → (B, pred_len, H)"]
+      Head["head 线性映射 H→1<br/>输出: (B, pred_len, 1)"]
+      DN["反归一化: y = y * stdev_target + mean_target<br/>(使用目标列统计量)"]
+    end
+    E --> BP --> Perm --> XLSTM --> T1 --> TP --> T2 --> Head --> DN
+  </div>
+
+  <p class="desc">
+    说明：BackProjection 与 time_proj 分别沿“特征维/时间维”线性映射；xLSTM 使用 sLSTM 变体进行时序建模；反归一化使用输入阶段按时间维计算的目标列均值/标准差（RevIN风格）。
+  </p>
+  <h2>xLSTMStack 细化架构</h2>
+  <div class="desc">配置示例：rnn_type=sLSTM，layers=2，share_params=True，enable_longconv=True，kernels={3,7,15,25}，hidden=H。</div>
+  <div class="mermaid">
+  flowchart TB
+    X["输入 x (B, L, C)"]
+    P["Linear in_dim→H<br/>输出: (B, L, H)"]
+
+    subgraph L1["第1层"]
+      LN1["LayerNorm (H)"]
+      LC1["LongConvMix 多核深度可分卷积<br/>kernels={3,7,15,25}<br/>DWConv(H→H)×m → concat → 1x1Conv → Dropout → gate σ(g)"]
+      Add1["残差: h + σ(g)*mix"]
+      RNN1["RNN: sLSTM (1层, hidden=H) 或 GRU<br/>输出: (B, L, H)"]
+      Res1["残差: 上一h + Dropout(out)"]
+    end
+
+    subgraph L2["第2层（参数共享: True）"]
+      LN2["LayerNorm (H)"]
+      LC2["LongConvMix（复用权重）"]
+      Add2["残差: h + σ(g)*mix"]
+      RNN2["sLSTM（复用权重）"]
+      Res2["残差: 上一h + Dropout(out)"]
+    end
+
+    Out["输出 h (B, L, H)"]
+
+    X --> P --> LN1 --> LC1 --> Add1 --> RNN1 --> Res1 --> LN2 --> LC2 --> Add2 --> RNN2 --> Res2 --> Out
+  </div>
+
+  <p class="desc">
+    说明：
+    1) 每层次序为 LayerNorm → LongConvMix → RNN → 残差；
+    2) LongConvMix 采用深度可分多核空洞/普通卷积并以 1x1Conv 聚合，输出经门控 σ(g) 与输入相加；
+    3) RNN 支持 sLSTM/GRU，当前模型为 sLSTM；
+    4) share_params=True 时，RNN 与 LongConvMix 在多层间复用权重（每层仍有独立 LayerNorm）；
+    5) 残差连接分别在 LongConvMix 与 RNN 之后，有助于梯度稳定与多尺度融合。
+  </p>
+
+  <h2>LongConvMix 细化架构</h2>
+  <div class="desc">多核深度可分时序卷积（groups=H），保持长度不变（padding=k//2），门控融合并残差回加。</div>
+  <div class="mermaid">
+  flowchart LR
+    X["输入 h (B, L, H)"]
+    T1["transpose → (B, H, L)"]
+
+    subgraph DW["Depthwise Conv 分支（m 个 kernel）"]
+      D3["DWConv k=3 → (B, H, L)"]
+      D7["DWConv k=7 → (B, H, L)"]
+      D15["DWConv k=15 → (B, H, L)"]
+      D25["DWConv k=25 → (B, H, L)"]
+    end
+
+    CAT["通道维 concat → (B, H×m, L)"]
+    P1["Pointwise 1×1Conv → (B, H, L)"]
+    DO["Dropout(p)"]
+    T2["transpose → (B, L, H)"]
+    G["可学习门 g ∈ ℝ → σ(g)"]
+    OUT["残差融合: y = x + σ(g)·mix → (B, L, H)"]
+
+    X --> T1
+    T1 --> D3
+    T1 --> D7
+    T1 --> D15
+    T1 --> D25
+    D3 --> CAT
+    D7 --> CAT
+    D15 --> CAT
+    D25 --> CAT
+    CAT --> P1 --> DO --> T2 --> OUT
+    X -. 残差 .-> OUT
+    G --> OUT
+  </div>
+
+  <p class="desc">
+    细节：
+    1) Depthwise：每个卷积分组数=H，仅在时间维 L 上卷积，通道间无混合；
+    2) 长度保持：padding=k//2，输出与输入同 L；
+    3) 多尺度：kernels 由 configs.xlstm_kernels 指定（如 {3,7,15,25}），并行分支后在通道维拼接；
+    4) 1×1Conv：将拼接后的 (H×m) 压回 H，完成通道混合；
+    5) 门控：全局标量门 g（nn.Parameter）经 σ 压缩到 (0,1)，控制混入强度；
+    6) 残差：与输入 x 相加，形成可学习的前置时域混合，便于梯度流动与稳态训练；
+    7) 开关：若 enable_longconv=False，则 LongConvMix 退化为 Identity。
+  </p>
+
+</body>
+  <h2>LongConvMix + sLSTM 组合总览</h2>
+  <div class="desc">将 LongConvMix 与 sLSTM 融合为单一数据流，展示每层管线（参数共享情形）。</div>
+  <div class="mermaid">
+  flowchart TB
+    X["输入 x (B, L, C)"]
+    P["Linear in_dim→H<br/>输出: (B, L, H)"]
+
+    subgraph L1["第1层：LongConvMix + sLSTM"]
+      LN1["LayerNorm (H)"]
+      subgraph LCM1["LongConvMix"]
+        L1_T1["transpose → (B, H, L)"]
+        L1_D3["DWConv k=3 → (B, H, L)"]
+        L1_D7["DWConv k=7 → (B, H, L)"]
+        L1_D15["DWConv k=15 → (B, H, L)"]
+        L1_D25["DWConv k=25 → (B, H, L)"]
+        L1_CAT["concat → (B, H×m, L)"]
+        L1_P1["1×1Conv → (B, H, L)"]
+        L1_DO["Dropout(p)"]
+        L1_T2["transpose → (B, L, H)"]
+        L1_G["门 σ(g)"]
+        L1_ADD["残差 y1 = h + σ(g)·mix"]
+        L1_T1 --> L1_D3
+        L1_T1 --> L1_D7
+        L1_T1 --> L1_D15
+        L1_T1 --> L1_D25
+        L1_D3 --> L1_CAT
+        L1_D7 --> L1_CAT
+        L1_D15 --> L1_CAT
+        L1_D25 --> L1_CAT
+        L1_CAT --> L1_P1 --> L1_DO --> L1_T2 --> L1_ADD
+      end
+      RNN1["sLSTM (hidden=H)"]
+      RES1["残差 y2 = y1 + Dropout(out)"]
+    end
+
+    subgraph L2["第2层（参数共享）"]
+      LN2["LayerNorm (H)"]
+      subgraph LCM2["LongConvMix（复用权重）"]
+        L2_T1["transpose → (B, H, L)"]
+        L2_D3["DWConv k=3"]
+        L2_D7["DWConv k=7"]
+        L2_D15["DWConv k=15"]
+        L2_D25["DWConv k=25"]
+        L2_CAT["concat"]
+        L2_P1["1×1Conv"]
+        L2_DO["Dropout(p)"]
+        L2_T2["transpose → (B, L, H)"]
+        L2_G["门 σ(g)"]
+        L2_ADD["残差 y3 = h + σ(g)·mix"]
+        L2_T1 --> L2_D3
+        L2_T1 --> L2_D7
+        L2_T1 --> L2_D15
+        L2_T1 --> L2_D25
+        L2_D3 --> L2_CAT
+        L2_D7 --> L2_CAT
+        L2_D15 --> L2_CAT
+        L2_D25 --> L2_CAT
+        L2_CAT --> L2_P1 --> L2_DO --> L2_T2 --> L2_ADD
+      end
+      RNN2["sLSTM（复用权重）"]
+      RES2["残差 y4 = y3 + Dropout(out)"]
+    end
+
+    OUT["输出 h (B, L, H)"]
+
+    X --> P --> LN1 --> LCM1 --> RNN1 --> RES1 --> LN2 --> LCM2 --> RNN2 --> RES2 --> OUT
+
+    LCM1 -. 共享权重 .-> LCM2
+    RNN1 -. 共享权重 .-> RNN2
+  </div>
+
+  <p class="desc">
+    说明：每层均采用 LayerNorm → LongConvMix（DWConv 并行多核 + 1×1Conv + Dropout + σ(g) 门控 + 残差）→ sLSTM → 残差；当 share_params=True 时，第二层与第一层复用 LongConvMix 和 sLSTM 的权重（示意为虚线“共享权重”）。
+  </p>
+
+</html>
+

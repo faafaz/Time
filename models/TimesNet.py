@@ -92,6 +92,7 @@ class Model(nn.Module):
         self.seq_len = configs.seq_len
         self.label_len = configs.label_len
         self.pred_len = configs.pred_len
+        self.in_features = configs.enc_in
         self.model = nn.ModuleList([TimesBlock(configs) for _ in range(configs.e_layers)])
         self.enc_embedding = DataEmbedding(c_in=configs.enc_in,
                                            d_model=configs.d_model,
@@ -107,7 +108,6 @@ class Model(nn.Module):
                 configs.d_model, configs.c_out, bias=True)
 
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
-        x_enc = x_enc[:, :, 1:2]  # 取功率
         # Normalization from Non-stationary Transformer
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
@@ -132,6 +132,8 @@ class Model(nn.Module):
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
         if self.task_name == 'ultra_short_term_forecast' or self.task_name == 'short_term_forecast' or self.task_name == 'long_term_forecast':
             dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
-            return dec_out[:, -self.pred_len:, :]  # [B, L, D]
+            # print(dec_out.shape)
+            # print(dec_out[:, -self.pred_len:, :].shape)
+            return dec_out[:, -self.pred_len:, -1:]  # [B, L, D]
 
         return None

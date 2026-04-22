@@ -34,8 +34,6 @@ class Model(nn.Module):
                             use_amp = False)
         
     def forward(self, x, _unknown1, _unknown2, _unknown3):
-        x = x[:, :, 1:2]
-        # 前向传播函数，忽略额外的未知参数
         out = self.model(x)
         return out
     
@@ -105,5 +103,5 @@ class WPMixer(nn.Module):
     def forward(self, x):
         # 前向传播函数
         pred = self.wpmixerCore(x)           # 通过核心组件进行预测
-        pred = pred[:, :, -self.channel_out:] # 只取最后channel_out个通道的输出
+        pred = pred[:, :, -1:] # 只取最后channel_out个通道的输出
         return pred 

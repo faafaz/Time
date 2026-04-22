@@ -1,0 +1,137 @@
+# iTransformer_xLSTM_VMD_Preprocessed 配置文件
+# 混合架构: VMD预处理 + iTransformer编码器 + xLSTM时间建模
+#
+# 核心特性:
+# 1. VMD预处理: 将目标变量分解为K个IMF分量，与原始特征拼接
+# 2. iTransformer: 变量关系建模
+# 3. xLSTM: 时间序列建模
+# 4. 自适应损失加权: 针对波峰波谷等极端事件的特殊处理
+
+# 模型基本信息
+model_name: "iTransformer_xLSTM_VMD_Preprocessed"
+
+# 任务类型
+task_name: "ultra_short_term_forecast"
+
+# 时间序列参数
+seq_len: 96      # 输入序列长度
+label_len: 0     # 标签长度
+pred_len: 16     # 预测长度
+
+# 数据频率
+freq: "15min"
+
+# 输入输出特征
+enc_in: 13       # 编码器输入特征数
+dec_in: 13       # 解码器输入特征数
+c_out: 1         # 输出特征数
+
+# iTransformer编码器参数
+e_layers: 2      # Encoder层数
+d_model: 128     # 模型维度
+d_ff: 256        # FFN维度
+n_heads: 8       # 注意力头数
+activation: "gelu"  # 激活函数
+dropout: 0.1     # Dropout率
+
+# 简化iTransformer选项
+simplify_itransformer: true  # 是否使用简化版iTransformer
+simplified_d_model: 64       # 简化版模型维度
+simplified_d_ff: 64          # 简化版FFN维度
+
+# xLSTM时间建模参数
+enable_xlstm: true              # 是否启用xLSTM
+rnn_type: "slstm"               # RNN类型: 'slstm' 或 'gru'
+xlstm_hidden: 64                # xLSTM隐藏层维度
+enable_xlstm_longconv: true     # 是否启用LongConv预混合
+xlstm_kernels: [7, 15]          # LongConv卷积核大小
+
+# ========== VMD预处理参数 ==========
+enable_vmd_preprocessing: true  # 是否启用VMD预处理
+vmd_k: 8                        # VMD分解的模态数
+vmd_impl: "fftbank"             # VMD实现方式: 'fftbank' (可微分) 或 'vmdpy' (精确)
+vmd_alpha: 483.5238203360982    # VMD惩罚参数
+vmd_tau: 0.0                    # VMD噪声容忍度
+vmd_dc: 0                       # VMD直流分量
+vmd_init: 1                     # VMD初始化方式
+vmd_tol: 1e-7                   # VMD收敛容忍度
+vmd_max_iter: 500               # VMD最大迭代次数
+
+# ========== 自适应损失加权参数 (NEW) ==========
+enable_adaptive_loss: true      # 是否启用自适应损失加权
+adaptive_loss_type: "ramp_aware"  # 损失类型: 'ramp_aware', 'gradient_weighted', 'quantile_weighted', 'focal_mse'
+
+# RampAwareLoss参数 (推荐: 针对爬坡事件)
+ramp_weight: 3.0                # 爬坡事件的权重倍数 (1.0-5.0)
+ramp_threshold_quantile: 0.9    # 爬坡事件阈值分位数 (0.8-0.95)
+use_target_ramp: true           # 是否使用真实值检测爬坡
+
+# GradientWeightedLoss参数 (备选: 基于梯度)
+gradient_weight_alpha: 2.0      # 梯度权重系数 (1.0-3.0)
+gradient_smooth: true           # 是否对梯度进行平滑
+
+# QuantileWeightedLoss参数 (备选: 基于分位数)
+extreme_quantiles: [0.1, 0.9]   # 极端值分位数阈值
+extreme_weight: 3.0             # 极端值权重倍数
+
+# FocalMSELoss参数 (备选: 类Focal Loss)
+focal_gamma: 2.0                # 聚焦参数
+focal_alpha: 1.0                # 缩放参数
+
+# 训练参数
+batch_size: 32
+learning_rate: 0.0001
+patience: 10
+train_epochs: 100
+lradj: "adjust_fuc"  # 学习率调整策略
+
+# 其他参数
+embed_type: "timeF"
+moving_avg: 25
+
+# GPU配置
+use_gpu: true
+gpu: 0
+num_workers: 0
+
+# ========== 使用说明 ==========
+#
+# 1. 自适应损失类型选择:
+#    - ramp_aware (推荐): 针对爬坡事件（波峰波谷）赋予更高权重
+#      * 适用场景: 风电功率突变、爬坡事件预测
+#      * 参数调优: ramp_weight (1.0-5.0), ramp_threshold_quantile (0.8-0.95)
+#
+#    - gradient_weighted: 根据功率变化梯度动态调整权重
+#      * 适用场景: 功率变化剧烈的时段
+#      * 参数调优: gradient_weight_alpha (1.0-3.0)
+#
+#    - quantile_weighted: 对极端值（高/低分位数）赋予更高权重
+#      * 适用场景: 极端天气、异常功率值
+#      * 参数调优: extreme_quantiles, extreme_weight
+#
+#    - focal_mse: 对难以预测的样本赋予更高权重
+#      * 适用场景: 样本不平衡、难样本挖掘
+#      * 参数调优: focal_gamma (1.0-3.0)
+#
+# 2. 消融实验配置:
+#    - Baseline: enable_adaptive_loss=false
+#    - RampAware: enable_adaptive_loss=true, adaptive_loss_type="ramp_aware"
+#    - Gradient: enable_adaptive_loss=true, adaptive_loss_type="gradient_weighted"
+#    - Quantile: enable_adaptive_loss=true, adaptive_loss_type="quantile_weighted"
+#    - Focal: enable_adaptive_loss=true, adaptive_loss_type="focal_mse"
+#
+# 3. 参数调优建议:
+#    - 轻量级: vmd_k=4, xlstm_hidden=32, simplify_itransformer=true
+#    - 平衡型: vmd_k=8, xlstm_hidden=64 (默认)
+#    - 高性能: vmd_k=12, xlstm_hidden=128
+#
+# 4. 爬坡事件权重调优:
+#    - ramp_weight越大, 对爬坡事件的关注度越高 (推荐2.0-4.0)
+#    - ramp_threshold_quantile越大, 识别的爬坡事件越少但越极端 (推荐0.85-0.95)
+#
+# 5. VMD参数调优:
+#    - vmd_k: 分解的模态数, 越大越精细但参数越多 (推荐4-12)
+#    - vmd_alpha: 惩罚参数, 越大频带越窄 (推荐100-1000)
+#
+# 详细文档: docs/iTransformer_xLSTM_VMD_Preprocessed_自适应损失.md
+

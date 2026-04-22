@@ -1,0 +1,67 @@
+# iPatchTransformer 配置文件 (v2.0 - 修复版)
+# 融合 iTransformer + 优化的Patching机制
+# 修复: 移除位置编码、使用LayerNorm、简化预测头、更大的patch
+
+# 模型基本信息
+model_name: "iPatchTransformer"
+
+# 任务类型
+task_name: "ultra_short_term_forecast"
+
+# 时间序列参数
+seq_len: 96      # 输入序列长度
+label_len: 0     # 标签长度
+pred_len: 8      # 预测长度
+
+# 输入输出特征
+n_input_features: 1  # 输入特征数 (目标变量)
+enc_in: 1            # 编码器输入特征数
+dec_in: 1            # 解码器输入特征数
+c_out: 1             # 输出特征数
+
+# Patching参数 (v2.0 - 修复版: 使用更大的patch)
+patch_len: 32    # Patch长度 (从16增加到32，保留更多长期依赖)
+stride: 16       # 步长 (从8增加到16，50%重叠)
+# 说明:
+# - seq_len=96, patch_len=32, stride=16 → n_patches=6
+# - 复杂度降低: O(96²) → O(6²) = 256倍
+# - 修复原因:
+#   * 小patch (16) 丢失长期依赖 → 使用大patch (32)
+#   * 光伏预测需要捕捉日出日落等长期趋势
+# - 推荐配置:
+#   * 当前: patch_len=32, stride=16 (6个patches) ← 推荐
+#   * 备选: patch_len=48, stride=24 (4个patches)
+
+# Transformer参数
+e_layers: 1      # Encoder层数 (推荐: 1-2)
+d_layers: 1      # Decoder层数 (未使用)
+d_model: 128     # 模型维度
+d_ff: 256        # FFN维度 (通常是d_model的2倍)
+n_heads: 8       # 注意力头数
+activation: "gelu"  # 激活函数
+
+# 正则化
+dropout: 0.1     # Dropout率
+fc_dropout: 0.1  # 全连接层Dropout
+
+# 训练参数
+batch_size: 128
+learning_rate: 0.0001
+train_epochs: 100
+patience: 10
+lradj: "adjust_fuc"  # 学习率调整策略
+
+# 数据参数
+freq: "60min"    # 数据频率
+
+# v2.0 修复说明:
+# 1. ✅ 移除位置编码 - 避免与倒置架构矛盾
+# 2. ✅ 使用LayerNorm - BatchNorm在小batch不稳定
+# 3. ✅ 简化预测头 - 移除FlattenHead，使用简单投影+平均池化
+# 4. ✅ 更大的patch - patch_len=32, stride=16 (保留更多长期依赖)
+#
+# 预期改进:
+# - 性能: 接近iTransformer (Vali Loss: 2.73 → ~2.60)
+# - 速度: 比iTransformer快10-20% (2.6 min → ~2.0 min)
+# - 参数: 减少30-40%
+

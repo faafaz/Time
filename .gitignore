@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+*.ipynb_checkpoints/
+
+# Project specific
+# 数据集 - 通常太大不放进git
+dataset/
+datasets/
+database/
+
+# 检查点和训练输出
+checkpoints*/
+A_result/
+*.pth
+*.pt
+*.ckpt
+
+# 大文件
+*.zip
+*.tar.gz
+*.rar
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log

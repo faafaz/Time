@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VMDDecomposer (ABDM) Structure Diagram</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+        .diagram-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        /* SVG Specific Styles */
+        svg {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .frame-border { fill: none; stroke: #FFC107; stroke-width: 3; }
+        .block-pink { fill: #F48FB1; }
+        .block-green { fill: #C5E1A5; }
+        .block-cyan { fill: #00BCD4; }
+        .block-blue { fill: #90CAF9; }
+        .block-text { fill: #333; text-anchor: middle; dominant-baseline: middle; }
+        .label-text { fill: #333; text-anchor: middle; font-size: 13px; }
+        .arrow-line { stroke: #333; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+        .operator-circle { fill: white; stroke: #333; stroke-width: 1.5; }
+        .operator-text { fill: #333; text-anchor: middle; dominant-baseline: middle; font-size: 20px; }
+        .wave-red { stroke: #E91E63; stroke-width: 2; fill: none; }
+        .wave-cyan { stroke: #00BCD4; stroke-width: 2; fill: none; }
+        .dots-text { fill: #333; text-anchor: middle; font-size: 20px; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+<div class="diagram-container">
+    <svg width="900" height="500" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+            </marker>
+        </defs>
+
+        <rect x="50" y="20" width="800" height="460" rx="20" ry="20" class="frame-border" />
+        <text x="450" y="45" text-anchor="middle" font-size="16" font-weight="bold">VMDDecomposer (ABDM)</text>
+
+        <path d="M 70,240 Q 80,220 90,240 T 110,240 T 130,240 T 150,240" class="wave-red" transform="rotate(90 110 240) translate(-130, -110) scale(1.5)"/>
+        <text x="80" y="370" class="label-text">Target</text>
+        <text x="80" y="385" class="label-text">Variable</text>
+        <text x="80" y="400" class="label-text">x [B, L, 1]</text>
+        <path d="M 110,300 L 160,300" class="arrow-line"/>
+
+        <rect x="160" y="200" width="50" height="200" rx="10" ry="10" class="block-blue" />
+        <text x="185" y="300" class="block-text" transform="rotate(-90 185 300)">FFT (rfft)</text>
+        <text x="230" y="330" class="label-text" text-anchor="start">Spectrum</text>
+        <text x="230" y="345" class="label-text" text-anchor="start">x_freq</text>
+        <text x="230" y="360" class="label-text" text-anchor="start">[B, Nf]</text>
+
+        <rect x="250" y="80" width="120" height="70" rx="10" ry="10" class="block-pink" />
+        <text x="310" y="105" class="block-text">Learnable</text>
+        <text x="310" y="125" class="block-text">vmd_alpha [K]</text>
+        <path d="M 370,115 L 400,115" class="arrow-line"/>
+        
+        <rect x="400" y="80" width="120" height="70" rx="10" ry="10" class="block-green" />
+        <text x="460" y="100" class="block-text">Softplus &</text>
+        <text x="460" y="115" class="block-text">Bandwidth Calc</text>
+        <text x="460" y="130" class="block-text">(sigma)</text>
+
+        <rect x="250" y="190" width="120" height="70" rx="10" ry="10" class="block-pink" />
+        <text x="310" y="215" class="block-text">Learnable</text>
+        <text x="310" y="235" class="block-text">vmd_k [1]</text>
+        <path d="M 370,225 L 400,225" class="arrow-line"/>
+
+        <rect x="400" y="190" width="120" height="70" rx="10" ry="10" class="block-green" />
+        <text x="460" y="210" class="block-text">Sigmoid &</text>
+        <text x="460" y="225" class="block-text">Center Freq Calc</text>
+        <text x="460" y="240" class="block-text">(centers)</text>
+
+        <path d="M 210,300 L 210,375 L 280,375" class="arrow-line" fill="none"/>
+        <rect x="280" y="340" width="100" height="70" rx="10" ry="10" class="block-pink" />
+        <text x="330" y="365" class="block-text">Freq Index</text>
+        <text x="330" y="385" class="block-text">freq_idx [Nf, 1]</text>
+        <path d="M 380,375 L 420,375" class="arrow-line"/>
+
+        <rect x="420" y="340" width="100" height="70" rx="10" ry="10" class="block-green" />
+        <text x="470" y="365" class="block-text">Freq Index</text>
+        <text x="470" y="385" class="block-text">freq_idx [Nf, 1]</text>
+
+        <path d="M 520,115 L 540,115 L 540,200 L 560,200" class="arrow-line" fill="none"/>
+        <path d="M 520,225 L 560,225" class="arrow-line"/>
+        <path d="M 470,340 L 470,260" class="arrow-line"/>
+        <path d="M 520,375 L 540,375 L 540,250 L 560,250" class="arrow-line" fill="none"/>
+
+        <rect x="560" y="150" width="60" height="150" rx="10" ry="10" class="block-cyan" />
+        <text x="590" y="225" class="block-text" transform="rotate(-90 590 225)">Gaussian Window w = exp(...)</text>
+        <path d="M 620,225 L 650,225" class="arrow-line"/>
+
+        <rect x="650" y="150" width="60" height="150" rx="10" ry="10" class="block-green" />
+        <text x="680" y="225" class="block-text" transform="rotate(-90 680 225)">Normalize w (Sum=1)</text>
+        
+        <text x="720" y="190" class="label-text">Filter Bank</text>
+        <text x="720" y="205" class="label-text">w [Nf, K]</text>
+
+        <circle cx="750" cy="260" r="20" class="operator-circle" />
+        <text x="750" y="260" class="operator-text">×</text>
+
+        <path d="M 210,300 L 630,300 L 700,275 L 730,268" class="arrow-line" fill="none"/>
+        <path d="M 710,225 L 730,245" class="arrow-line"/>
+
+        <text x="750" y="300" class="label-text">Filtered</text>
+        <text x="750" y="315" class="label-text">Spectra</text>
+        <text x="750" y="330" class="label-text">[B, Nf, K]</text>
+
+        <path d="M 770,260 L 800,260" class="arrow-line"/>
+
+        <rect x="800" y="160" width="40" height="200" rx="10" ry="10" class="block-blue" />
+        <text x="820" y="260" class="block-text" transform="rotate(-90 820 260)">iFFT (irfft)</text>
+        <path d="M 840,260 L 870,260" class="arrow-line"/>
+
+        <rect x="870" y="160" width="40" height="200" rx="10" ry="10" class="block-cyan" />
+        <text x="890" y="260" class="block-text" transform="rotate(-90 890 260)">Reshape & Permute</text>
+        <path d="M 910,260 L 950,260" class="arrow-line"/>
+
+        <g transform="translate(830, 0)">
+             <path d="M 110,180 Q 120,160 130,180 T 150,180 T 170,180" class="wave-cyan"/>
+            <path d="M 110,220 Q 120,200 130,220 T 150,220 T 170,220" class="wave-cyan"/>
+            <path d="M 110,260 Q 120,240 130,260 T 150,260 T 170,260" class="wave-cyan"/>
+            
+            <text x="140" y="300" class="dots-text">...</text>
+            
+            <path d="M 110,330 Q 120,310 130,330 T 150,330 T 170,330" class="wave-cyan"/>
+
+            <text x="140" y="370" class="label-text">IMFs</text>
+            <text x="140" y="385" class="label-text">(modes)</text>
+            <text x="140" y="400" class="label-text">[B, L, K]</text>
+        </g>
+
+    </svg>
+</div>
+
+</body>
+</html>

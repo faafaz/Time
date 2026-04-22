@@ -1,0 +1,6 @@
+# use with: conda env create --file requirements.yaml
+name: pysdtw
+
+dependencies:
+  - numba
+  - pytorch::pytorch

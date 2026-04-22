@@ -68,7 +68,6 @@ class Model(nn.Module):
             )
 
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
-        x_enc = x_enc[:, :, 1:]  # 取功率
         # Embedding
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         enc_out, attns = self.encoder(enc_out, attn_mask=None)

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk '{print $9, \"\\(\", $\\(NF - 2\\), \"bytes\\)\"}')",
+      "Bash(xargs basename *)",
+      "Bash(rm -rf \"/c/Users/Administrator/Desktop/TimeSeries/Time2/third_party\\\\\"*\")",
+      "Bash(rmdir \"/c/Users/Administrator/Desktop/TimeSeries/Time2/third_party\\\\\"\")",
+      "Bash(mv \"/c/Users/Administrator/Desktop/TimeSeries/Time2/DILATE_master\" \"/c/Users/Administrator/Desktop/TimeSeries/Time2/third_party/\")",
+      "Bash(mkdir -p /c/Users/Administrator/Desktop/TimeSeries/Time2/third_party)",
+      "Bash(mv /c/Users/Administrator/Desktop/TimeSeries/Time2/DILATE_master /c/Users/Administrator/Desktop/TimeSeries/Time2/third_party/)",
+      "Bash(cmd //c dir \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\TimeSeries\\\\Time2\" /b)",
+      "Bash(findstr third_p)",
+      "Bash(grep -E \"\\\\.py$\")",
+      "Bash(awk '{print $9}')"
+    ]
+  }
+}

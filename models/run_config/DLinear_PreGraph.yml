@@ -1,0 +1,65 @@
+# DLinear_PreGraph 模型配置文件
+# 在分解前使用图网络建模变量关系的DLinear模型
+
+# 模型基本信息
+model_name: "DLinear_PreGraph"
+
+# 数据相关配置
+freq: "15min"
+
+# 时间序列相关
+task_name: "ultra_short_term_forecast"
+seq_len: 96          # 输入序列时间步
+pred_len: 16         # 输出序列时间步
+label_len: 0
+
+# DLinear 参数
+moving_avg: 25       # 移动平均窗口大小，用于趋势提取
+individual: True     # 是否为每个变量使用独立的线性层
+
+# 输入特征配置
+n_input_features: 12 # 输入特征数量（变量数）
+enc_in: 12
+c_out: 1            # 输出特征数（预测目标数）
+
+# GraphBlock 参数（在分解前使用）
+use_graph: True           # 是否使用图模块（False时退化为原始DLinear）
+graph_conv_channel: 32    # 图卷积通道数
+graph_skip_channel: 64    # 图跳跃连接通道数
+gcn_depth: 2              # 图卷积深度（信息传播跳数）
+graph_node_dim: 40        # 节点嵌入维度（用于学习邻接矩阵）
+graph_propalpha: 0.05     # 图传播混合系数 (alpha * 原始 + (1-alpha) * 传播)
+
+# 时间感知邻接门控
+enable_time_adj_gate: True   # 是否启用时间感知的动态邻接矩阵
+time_gate_scale: 0.1         # 时间门控的缩放系数
+
+# VMD分解配置（对目标变量进行频带分解）
+enable_vmd_preprocessing: True  # 是否启用VMD预处理
+vmd_K: 3                        # VMD分解的模态数
+vmd_alpha: 2000                 # VMD的带宽参数
+vmd_tau: 0.0                    # VMD的噪声容忍度
+vmd_DC: 0                       # 是否包含DC分量
+vmd_init: 1                     # 初始化方式
+vmd_tol: 1e-7                   # 收敛容忍度
+
+# LongConvMix 目标变量增强（可选）
+enable_target_longconv: True    # 是否对目标变量使用LongConvMix增强
+longconv_kernels: [5, 11, 23]   # 多尺度卷积核大小
+longconv_dropout: 0.1           # LongConvMix的dropout率
+longconv_hidden: 32             # LongConvMix的隐藏维度
+
+# 训练相关
+dropout: 0.2
+batch_size: 64
+learning_rate: 0.0001
+train_epochs: 100
+patience: 10
+lradj: "adjust_fuc"
+
+# 损失函数
+loss: "MSE"  # MSE/RMSE/MAE/huber
+
+# 其他
+meta_cols: 0  # 元数据列数
+

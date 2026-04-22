@@ -11,9 +11,29 @@ class DotDict(dict):
     __delattr__ = dict.__delitem__
 
 
-def adjust_learning_rate(optimizer, epoch, learning_rate):
-    lr_adjust = {epoch: learning_rate * (0.98 ** ((epoch - 1) // 1))}
-    # lr_adjust = {epoch: learning_rate * (0.8 ** ((epoch - 1) // 1))}
+def adjust_learning_rate(optimizer, epoch, learning_rate, lradj_type="default"):
+    """
+    学习率调整函数，支持多种调整策略
+    """
+    if lradj_type == "type1":
+        # DUET type1策略
+        lr_adjust = {epoch: learning_rate * (0.5 ** ((epoch - 1) // 1))}
+    elif lradj_type == "type2":
+        # DUET type2策略
+        lr_adjust = {
+            2: 5e-5, 4: 1e-5, 6: 5e-6, 8: 1e-6,
+            10: 5e-7, 15: 1e-7, 20: 5e-8
+        }
+    elif lradj_type == "type3":
+        # DUET type3策略
+        lr_adjust = {epoch: learning_rate if epoch < 3 else learning_rate * (0.9 ** ((epoch - 3) // 1))}
+    elif lradj_type == "constant":
+        # 恒定学习率
+        lr_adjust = {epoch: learning_rate}
+    else:
+        # 默认策略
+        lr_adjust = {epoch: learning_rate * (1.0 ** ((epoch - 1) // 1))}
+
     if epoch in lr_adjust.keys():
         lr = lr_adjust[epoch]
         for param_group in optimizer.param_groups:

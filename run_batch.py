@@ -6,60 +6,92 @@ from utils.run_tools import check_is_complete, clear_fold
 ----------------------------------------------------------------需要填写的运行参数---------------------------------------------------------------------------------
 """
 # 运行模式
-run_type = "0"  # 0:训练 1:测试
-is_set_zero = False  # 是否将预测出来的负值置为0
-get_pred_type = "all"  # first:取第一个值 last:取最后一个值,all:取所有值
+run_type = "1"  # 0:训练 1:测试
+is_set_zero = True  # 是否将预测出来的负值置为0
+get_pred_type = "all" # first:取第一个值 last:取最后一个值,all:取所有值
 
 # 训练相关配置
 lradj = "adjust_fuc"  # 学习率调整方式 adjust_fuc/OneCycleLR
-learning_rate = 0.0001  # 学习率
+learning_rate = 0.00001  # 学习率
 patience = 10  # 训练耐心值
 train_epochs = 50  # 训练轮数
-batch_size = 128  # 批大小
+batch_size = 64  # 批大小
   
 # 模型相关配置
 num_tokens = 30
 
 # 数据集
 farm1 = [
-    "datasets/train_dataset.csv",
-    "datasets/test_dataset.csv",
-    "datasets/val_dataset.csv",
-    # "dataset/power/farm1/merged.csv",
-    # "dataset/power/farm1/2022/farm_1_20220101_20221231_1479.csv",
-    # "dataset/power/farm1/2023/farm_1_20230101_20231231_1479.csv",
-    # "F:/TimeSeries/dataset/power/farm2/2023/farm_2_20230101_20231231_1479_hz_ctdre.csv"
-]
-
-farm2 = [
-    "F:/TimeSeries/dataset/power/farm2/farm_2_20220101_20231231_clean.csv",
-    "F:/TimeSeries/dataset/power/farm2/2022/farm_2_20220101_20221231_1479_hz.csv",
-    "F:/TimeSeries/dataset/power/farm2/2023/farm_2_20230101_20231231_1479_hz_ctdre.csv"
+    # "dataset/cur_dataset/太阳坪风电场_48.0/train.csv",
+    # "dataset/cur_dataset/太阳坪风电场_48.0/val.csv",
+    # "dataset/cur_dataset/太阳坪风电场_48.0/test.csv", 
+    # "dataset/cur_dataset/乐阳风电场_100.0/train.csv",
+    # "dataset/cur_dataset/乐阳风电场_100.0/val.csv",
+    # "dataset/cur_dataset/乐阳风电场_100.0/test.csv",
+    # "dataset/cur_dataset/有名店风电场_80.0/train.csv",
+    # "dataset/cur_dataset/有名店风电场_80.0/val.csv",
+    # "dataset/cur_dataset/有名店风电场_80.0/test.csv",
+    # "dataset/cur_dataset/黄石筠山风场_80.0/train.csv",
+    # "dataset/cur_dataset/黄石筠山风场_80.0/val.csv",
+    # "dataset/cur_dataset/黄石筠山风场_80.0/test.csv",
+    # "dataset/cur_dataset/四眼坪风电场_二期__56.0/summer/train.csv",
+    # "dataset/cur_dataset/四眼坪风电场_二期__56.0/summer/val.csv",
+    # "dataset/cur_dataset/四眼坪风电场_二期__56.0/summer/test.csv",
+    # "dataset/cur_dataset/四眼坪风电场_二期__56.0/train.csv",
+    # "dataset/cur_dataset/四眼坪风电场_二期__56.0/val.csv",
+    # "dataset/cur_dataset/四眼坪风电场_二期__56.0/test.csv",
+    # "dataset/cur_dataset/麻城蔡家寨风场_50.0/train.csv",
+    # "dataset/cur_dataset/麻城蔡家寨风场_50.0/val.csv",
+    # "dataset/cur_dataset/麻城蔡家寨风场_50.0/test.csv",
+    # "dataset/cur_dataset/荆门象河风场_100.0/train.csv",
+    # "dataset/cur_dataset/荆门象河风场_100.0/val.csv",
+    # "dataset/cur_dataset/荆门象河风场_100.0/test.csv",
+    # "dataset/cur_dataset/利川一二期风场_96.0/train.csv",
+    # "dataset/cur_dataset/利川一二期风场_96.0/val.csv",
+    # "dataset/cur_dataset/利川一二期风场_96.0/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm6/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm6/val.csv",
+    # "dataset/cur_dataset/wind_farm/farm6/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm4/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm4/val.csv",
+    # "dataset/cur_dataset/wind_farm/farm4/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm1/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm1/val.csv",
+    # "dataset/cur_dataset/wind_farm/farm1/test.csv",
+    "dataset/cur_dataset/wind_farm/farm3/train.csv",
+    "dataset/cur_dataset/wind_farm/farm3/val.csv",
+    "dataset/cur_dataset/wind_farm/farm3/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/val.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Spring/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Spring/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Spring/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Summer/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Summer/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Summer/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Autumn/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Autumn/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Autumn/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Winter/train.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Winter/test.csv",
+    # "dataset/cur_dataset/wind_farm/farm2/Winter/test.csv",
+    # "dataset/cur_dataset/Location/train.csv",
+    # "dataset/cur_dataset/Location/val.csv",
+    # "dataset/cur_dataset/Location/test.csv",
 ]
 
 data = farm1
 
 # 配置需要执行的模型和权重
 model_dict = {
-    # "Autoformer": "20250607_192408_Autoformer",
-    # "DLinear": "20250920_141945_DLinear",
-    # "Informer": "20250607_194222_Informer",
-    # "TimesNet": "20250607_195312_TimesNet",
-    # "TimeXer": "20250918_231256_TimeXer",
-    # "Transformer": "20250607_200954_Transformer",
-    # "TimeLLM_MSPF_GATEFUSION": "20250609_223505_TimeLLM_MSPF_GATEFUSION",
-    # "LLMMixer": "20250608_001246_LLMMixer",
-    # "TimeLLM": "20250609_141514_TimeLLM",
-    "iTransformer": "20250920_200056_iTransformer",
-    # "PatchTST": "20250913_012805_PatchTST",
-    # "TimeLLM_MSPF_HFUSION": "20250602_021841_TimeLLM_MSPF_GATEFUSION",
-    # "TimeLLM_MSPF_FULL": "20250530_182637_TimeLLM_MSPF_FULL"
-    # "TimeLLM_MSPF_AWAREMVF": "20250531_152538_TimeLLM_MSPF_AWAREMVF",
-    # "PV_CNN": "20250727_231547_PV_CNN",
-    # "PV_LSTM": "20250730_230805_PV_LSTM",
-    # "PV_CNNLSTM": "20250731_134031_PV_CNNLSTM",
-    # "WPMixer": "20250916_135315_WPMixer",
-    # "DualSignalModel": "20250920_124238_DualSignalModel"
+    # "DLinear": "20260405_225336_DLinear",
+    # "TimeXer": "20260405_185948_TimeXer",
+    # "Transformer": "20260405_191000_Transformer",
+    # "iTransformer": "20260405_192313_iTransformer",
+    # "PatchTST": "20260405_193017_PatchTST",
+    "iTransformer_xLSTM_VMD_Preprocessed": "20260403_210857_iTransformer_xLSTM_VMD_Preprocessed",
+    # "TimesNet": "20260308_002426_TimesNet"
 }
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,10 +110,10 @@ for model_name, weight_folder in model_dict.items():
         "--get_pred_type", get_pred_type,
         # 公共参数 模型训练相关
         "--seq_len", str(96),
-        "--pred_len", str(12),
+        "--pred_len", str(2),
         "--label_len", str(0),
-        "--dropout", str(0.1), 
-        "--freq", "60min",
+        "--dropout", str(0.3), 
+        "--freq", "15min",
         "--lradj", str(lradj),
         "--learning_rate", str(learning_rate),
         "--patience", str(patience),
@@ -98,7 +130,21 @@ for model_name, weight_folder in model_dict.items():
 
 if run_type == "1":
     # 2.获取模型运行完的结果
-    all_file_abs = check_is_complete(model_dict, required_suffixes=["daily_metrics.csv", "pred.csv", "test.log"])
+    # 对于GAN模型，需要特殊处理路径
+    # 因为GAN模型保存在 checkpoints/DLinear_Graph_GAN/ 下
+    # 但运行时使用的 model_name 是 DLinear_Graph
+
+    # 创建一个用于检查结果的字典
+    check_dict = {}
+    for model_name, weight_folder in model_dict.items():
+        # 如果weight_folder包含"GAN"，说明是GAN模型
+        if "GAN" in weight_folder:
+            # 使用 DLinear_Graph_GAN 作为检查路径
+            check_dict["DLinear_Graph_GAN"] = weight_folder
+        else:
+            check_dict[model_name] = weight_folder
+
+    all_file_abs = check_is_complete(check_dict, required_suffixes=["pred.csv", "test.log"])
     target_dir = "A_result"
 
     # 3.清空目标目录

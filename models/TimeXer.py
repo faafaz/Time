@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from layers.SelfAttention_Family import FullAttention, AttentionLayer
 from layers.Embed import PositionalEmbedding
 import numpy as np
+from utils.DFS import DifferentiableFeatureSelector
 
 
 class FlattenHead(nn.Module):
@@ -166,6 +167,7 @@ class Model(nn.Module):
         self.seq_len = configs.seq_len
         self.pred_len = configs.pred_len
         self.patch_len = configs.patch_len
+        self.channels_used = configs.enc_in
         # 对不重复的Patch进行数量获取
         self.patch_num = int(configs.seq_len // configs.patch_len)
         self.n_vars = 1 if configs.features == 'MS' else configs.enc_in
@@ -200,13 +202,15 @@ class Model(nn.Module):
         self.head_nf = configs.d_model * (self.patch_num + 1)
         self.head = FlattenHead(configs.enc_in, self.head_nf, configs.pred_len,
                                 head_dropout=configs.dropout)
-
+        # self.dfs = DifferentiableFeatureSelector(self.channels_used)
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
         # 1.RevIn
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
         stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
         x_enc /= stdev
+
+        # x_enc = self.dfs(x_enc)
 
         _, _, N = x_enc.shape
 
@@ -215,11 +219,11 @@ class Model(nn.Module):
         # .unsqueeze(-1) -> (batch_size, seq_len, 1)
         # .permute(0, 2, 1) -> (batch_size, 1, seq_len)
         # en_embed -> (batch_size * 1, n_patches + 1, d_model) 其中n_vars为1
-        en_embed, n_vars = self.en_embedding(x_enc[:, :, 0].unsqueeze(-1).permute(0, 2, 1))
+        en_embed, n_vars = self.en_embedding(x_enc[:, :, self.channels_used - 1].unsqueeze(-1).permute(0, 2, 1))
 
         # 3.外生变量(协变量)嵌入。
         # ex_embed (batch_size, embed_dim, seq_len)
-        ex_embed = self.ex_embedding(x_enc[:, :, 1:], x_mark_enc)
+        ex_embed = self.ex_embedding(x_enc[:, :, :self.channels_used - 1], x_mark_enc)
 
         # 4.编码器处理
         # en_embed: (batch_size * 1, n_patches + 1, d_model)
@@ -242,8 +246,8 @@ class Model(nn.Module):
         dec_out = dec_out.permute(0, 2, 1)
 
         # De-Normalization from Non-stationary Transformer
-        dec_out = dec_out * (stdev[:, 0, -1:].unsqueeze(1).repeat(1, self.pred_len, 1))
-        dec_out = dec_out + (means[:, 0, -1:].unsqueeze(1).repeat(1, self.pred_len, 1))
+        dec_out = dec_out * (stdev[:, 0, self.channels_used - 1:self.channels_used].unsqueeze(1).repeat(1, self.pred_len, 1))
+        dec_out = dec_out + (means[:, 0, self.channels_used - 1:self.channels_used].unsqueeze(1).repeat(1, self.pred_len, 1))
 
         return dec_out
 
@@ -273,7 +277,6 @@ class Model(nn.Module):
         return dec_out
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
-        x_enc = x_enc[:, :, 1:]
         if self.task_name == 'ultra_short_term_forecast' or self.task_name == 'short_term_forecast' or self.task_name == 'long_term_forecast':
             if self.features == 'M':
                 dec_out = self.forecast_multi(x_enc, x_mark_enc, x_dec, x_mark_dec)
@@ -283,3 +286,12 @@ class Model(nn.Module):
                 return dec_out[:, -self.pred_len:, :]  # [B, L, D]
         else:
             return None
+        
+    def dfs_regularization(self):
+        """L1正则项（对DFS掩码概率）"""
+        return self.dfs.l1_regularization() if hasattr(self, 'dfs') else 0.0
+
+    def anneal_dfs_temperature(self, rate: float = 0.95, min_temp: float = 0.1 ):
+        """对DFS温度进行退火"""
+        if hasattr(self, 'dfs'):
+            self.dfs.anneal(rate=rate, min_temperature=min_temp)

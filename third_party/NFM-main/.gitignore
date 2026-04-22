@@ -1,0 +1,9 @@
+*.pyc
+*__pycache__
+*Logs_
+*scripts_exp
+*model2
+*.vscode
+*scripts_abl
+datasets/classification_data/SpeechCommands
+note.txt

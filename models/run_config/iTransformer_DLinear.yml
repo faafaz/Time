@@ -1,0 +1,210 @@
+# iTransformer_DLinear 配置文件 (v3 - 双向时间建模版本)
+# iTransformer编码器 + 双向时间建模 + 双向融合 + DLinear处理
+
+# 模型基本信息
+model_name: "iTransformer_DLinear"
+
+# 任务类型
+task_name: "ultra_short_term_forecast"
+
+# 时间序列参数
+seq_len: 96      # 输入序列长度
+label_len: 0     # 标签长度
+pred_len: 8      # 预测长度
+
+# 输入输出特征
+n_input_features: 1  # 输入特征数 (目标变量)
+enc_in: 1            # 编码器输入特征数
+dec_in: 1            # 解码器输入特征数
+c_out: 1             # 输出特征数
+
+# iTransformer参数
+e_layers: 1      # Encoder层数
+d_layers: 1      # Decoder层数 (未使用)
+d_model: 128     # 模型维度
+d_ff: 256        # FFN维度
+n_heads: 8       # 注意力头数
+activation: "gelu"  # 激活函数
+
+# ===== 双向DLinear参数 (NEW) =====
+enable_bidirectional: true  # 是否启用双向DLinear (消融实验开关)
+fusion_type: "gate"         # 双向融合类型: 'concat', 'add', 'gate' (推荐gate)
+
+# 说明:
+# - enable_bidirectional: 是否启用双向时间建模
+#   * true: 使用正向+反向时间建模 (推荐)
+#   * false: 不使用双向建模，直接投影 (消融实验)
+# - temporal_hidden_dim: 时间建模的隐藏层维度
+#   * 64: 平衡性能和速度 (推荐)
+#   * 32: 轻量级，速度快
+#   * 128: 高性能，参数多
+# - temporal_kernel_size: 时间建模的卷积核大小
+#   * 3: 捕捉局部时间依赖 (推荐)
+#   * 5: 捕捉更长的时间依赖
+# - temporal_num_layers: 时间建模的卷积层数
+#   * 2: 平衡性能和速度 (推荐)
+#   * 1: 轻量级
+#   * 3: 更深的时间建模
+# - fusion_type: 双向融合策略
+#   * 'gate': 门控融合，自适应权重 (推荐)
+#   * 'concat': 拼接后投影，参数多
+#   * 'add': 加权相加，参数少
+
+# 辅助特征参数
+use_auxiliary: true      # 是否使用辅助特征 (消融实验开关)
+aux_feature_dim: 24      # 辅助特征维度
+individual: true         # DLinear是否对每个特征独立预测
+
+# DLinear参数
+moving_avg: 25   # 移动平均窗口大小 (用于趋势提取，必须是奇数)
+
+# 正则化
+dropout: 0.1     # Dropout率
+fc_dropout: 0.1  # 全连接层Dropout
+
+# 训练参数
+batch_size: 128
+learning_rate: 0.0001
+train_epochs: 100
+patience: 10
+lradj: "adjust_fuc"  # 学习率调整策略
+
+# 数据参数
+freq: "60min"    # 数据频率
+
+# ===== 架构说明 (v3 - 双向DLinear版本) =====
+#
+# 主路径（原始时间序列）:
+# 1. 提取目标变量:
+#    - [B, seq_len, n_vars] -> [B, seq_len, 1]
+#    - 保留真实时间顺序
+#
+# 辅助路径（iTransformer）:
+# 2. iTransformer Embedding:
+#    - 倒置架构 (变量是token)
+#    - [B, seq_len, n_vars] -> [B, n_vars, d_model]
+#
+# 3. iTransformer Encoder:
+#    - 变量间Self-Attention
+#    - e_layers层Encoder
+#    - [B, n_vars, d_model] -> [B, n_vars, d_model]
+#
+# 4. 投影到辅助特征:
+#    - [B, n_vars, d_model] -> [B, n_vars, aux_feature_dim]
+#    - 转置: [B, aux_feature_dim, n_vars]
+#    - 插值: [B, seq_len, n_vars]
+#
+# 5. 拼接主路径和辅助路径:
+#    - [B, seq_len, 1] + [B, seq_len, n_vars] -> [B, seq_len, 1+n_vars]
+#
+# 6. 双向DLinear处理 (NEW):
+#    6.1 正向DLinear:
+#        - 分解为趋势和季节性
+#        - 对每个特征独立预测
+#        - 特征融合
+#        - [B, seq_len, 1+n_vars] -> [B, pred_len, 1]
+#    6.2 反向DLinear:
+#        - 翻转输入序列
+#        - 分解为趋势和季节性
+#        - 对每个特征独立预测
+#        - 特征融合
+#        - 翻转输出
+#        - [B, seq_len, 1+n_vars] -> [B, pred_len, 1]
+#    6.3 双向融合:
+#        - 门控融合 (gate) / 拼接融合 (concat) / 加权融合 (add)
+#        - [B, pred_len, 1] * 2 -> [B, pred_len, 1]
+#
+# 7. 输出:
+#    - [B, pred_len, 1] (只返回目标变量)
+
+# ===== 参数量估算 (v3 - 双向DLinear版本) =====
+# - iTransformer Embedding: ~12K
+# - iTransformer Encoder: ~131K (1层)
+# - 变量特征投影: ~3K (d_model=128 -> aux=24)
+# - DLinear处理: ~3K (共享，正向和反向复用同一个)
+# - 特征融合: ~1K
+# - 双向融合模块: ~6 (gate融合) / ~2 (concat融合) / ~2 (add融合)
+# - 总计: ~178K
+#
+# 对比:
+# - iTransformer: 187K
+# - iTransformer_DLinear v2: ~178K
+# - iTransformer_DLinear v3: ~178K (与v2基本相同！)
+#
+# 消融实验参数量:
+# - enable_bidirectional=false: ~178K
+# - enable_bidirectional=true (gate): ~178K (+6参数)
+# - enable_bidirectional=true (concat): ~178K (+2参数)
+# - enable_bidirectional=true (add): ~178K (+2参数)
+#
+# 🔑 关键优势: 参数量几乎不增加，只增加了极少的融合参数！
+
+# ===== 优化建议 =====
+# 1. 如果显存不足:
+#    - 减小 d_model (64/96)
+#    - 减小 temporal_hidden_dim (32)
+#    - 减小 batch_size (64)
+#    - enable_bidirectional = false (节省62K参数)
+#
+# 2. 如果速度太慢:
+#    - e_layers = 1 (已是最小)
+#    - temporal_num_layers = 1 (减少卷积层)
+#    - temporal_kernel_size = 3 (已是最小)
+#    - enable_bidirectional = false (节省计算)
+#
+# 3. 如果性能不佳:
+#    - 增加 e_layers (2)
+#    - 增加 temporal_hidden_dim (128)
+#    - 增加 temporal_num_layers (3)
+#    - 调整 moving_avg (15/25)
+#    - 尝试不同的 fusion_type ('gate' / 'concat')
+#
+# 4. 如果过拟合:
+#    - 增大 dropout (0.2)
+#    - 减小 d_model (64)
+#    - 减小 temporal_hidden_dim (32)
+#    - enable_bidirectional = false
+
+# ===== 消融实验建议 =====
+# 1. 基线 (不使用双向建模):
+#    enable_bidirectional: false
+#    use_auxiliary: true
+#
+# 2. 只使用正向建模:
+#    enable_bidirectional: true
+#    # 修改代码，只使用 forward_temporal
+#
+# 3. 完整双向建模 (推荐):
+#    enable_bidirectional: true
+#    fusion_type: "gate"
+#
+# 4. 不同融合策略对比:
+#    fusion_type: "gate"   # 门控融合 (推荐)
+#    fusion_type: "concat" # 拼接融合
+#    fusion_type: "add"    # 加权融合
+
+# ===== 预期效果 =====
+# - 性能: 比iTransformer_DLinear v2提升3-5% (双向时间建模)
+# - 速度: 比v2慢15-20% (增加了双向卷积)
+# - 优势:
+#   1. 变量建模 (iTransformer)
+#   2. 双向时间建模 (正向+反向)
+#   3. 自适应融合 (门控机制)
+#   4. 时间序列分解 (DLinear)
+# - 适用: 单变量/多变量预测，特别适合有明显时间依赖的序列
+
+# ===== 核心优势 =====
+# 1. 保留iTransformer的变量建模能力
+# 2. **双向时间建模**: 同时捕捉正向和反向的时间依赖
+# 3. **自适应融合**: 门控机制自动学习正向和反向的权重
+# 4. 时间序列分解能力 (趋势 + 季节性)
+# 5. 易于消融实验 (enable_bidirectional开关)
+# 6. 灵活的融合策略 (gate/concat/add)
+# 7. 参数量可控 (通过temporal_hidden_dim调整)
+
+# ===== 双向时间建模的优势 =====
+# 1. 捕捉双向依赖: 光伏功率既受历史影响，也受未来天气预报影响
+# 2. 更鲁棒: 正向和反向互补，减少单向建模的偏差
+# 3. 更灵活: 门控融合自动学习最优权重
+# 4. 易于解释: 可以分析正向和反向的贡献
+
