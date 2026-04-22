@@ -11,7 +11,7 @@ from pathlib import Path
 
 def plot_power_comparison(file_path, figsize=(15, 8)):
     """
-    从CSV文件读取数据并绘制ACTIVEPOWER和pred的对比折线图
+    从CSV文件读取数据并绘制温度/气温和pred的对比折线图
 
     参数:
     file_path (str): CSV文件路径
@@ -41,13 +41,13 @@ def plot_power_comparison(file_path, figsize=(15, 8)):
     # 绘制折线图 - 学术风格
     sns.lineplot(data=df, x='时间', y='温度/气温',
                  label='Actual', linewidth=1.5, color='#2E86AB', ax=ax)
-    sns.lineplot(data=df, x='时间', y='温度/气温',
+    sns.lineplot(data=df, x='时间', y='pred',
                  label='Predicted', linewidth=1.5, color='#A23B72', linestyle='--', ax=ax)
 
     # 设置标题和标签
-    ax.set_title('Actual vs Predicted', fontsize=16, fontweight='bold')
-    ax.set_xlabel('time', fontsize=12)
-    ax.set_ylabel('temp', fontsize=12)
+    ax.set_title('Actual vs Predicted Temperature', fontsize=16, fontweight='bold')
+    ax.set_xlabel('Time', fontsize=12)
+    ax.set_ylabel('Temperature', fontsize=12)
 
     # 设置图例和网格
     ax.legend(fontsize=12)

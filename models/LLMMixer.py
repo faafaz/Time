@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from layers.StandardNorm import Normalize
-from layers.Transformer_EncDec1 import Encoder, EncoderLayer
-from layers.SelfAttention_Family1 import FullAttention, AttentionLayer
+from layers.Transformer_EncDec import Encoder, EncoderLayer
+from layers.SelfAttention_Family import FullAttention, AttentionLayer
 from layers.Embed import DataEmbedding_wo_pos
 from layers.LoadLLM import load_llm
 

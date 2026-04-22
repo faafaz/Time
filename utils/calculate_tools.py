@@ -5,7 +5,7 @@ from datetime import datetime
 
 def calculate_daily_metrics(csv_file_path, logger=None):
     """
-    按日计算MSE, MAE, RMSE, NSE, Accuracy指标
+    按日计算皮尔逊相关系数、RMSE、MAE、MRE、MBE、R²指标
 
     Args:
         csv_file_path: CSV文件路径，包含时间, 温度/气温, pred列
@@ -55,24 +55,29 @@ def calculate_daily_metrics(csv_file_path, logger=None):
                 mae = np.mean(np.abs(pred_values - true_values))
                 rmse = np.sqrt(mse)
 
-                # NSE (纳什效率系数)
-                mean_true = np.mean(true_values)
-                numerator = np.sum((pred_values - true_values) ** 2)
-                # 防止分母为0
-                # true_values = true_values + 1e-10
-                denominator = np.sum((true_values - mean_true) ** 2)
-                if denominator != 0:
-                    nse = 1 - (numerator / denominator)
+                # 皮尔逊相关系数
+                if len(true_values) > 1:
+                    pearson_corr = np.corrcoef(true_values, pred_values)[0, 1]
                 else:
-                    print(date)
-                    print(true_values)
-                    print(f"mean_true:{mean_true}")
-                    nse = float('-inf')
+                    pearson_corr = float('nan')
+
+                # MRE (平均相对误差)
+                mre = np.mean(np.abs((pred_values - true_values) / (true_values + 1e-8)))
+
+                # MBE (平均偏差误差)
+                mbe = np.mean(pred_values - true_values)
+
+                # R² (决定系数)
+                mean_true = np.mean(true_values)
+                ss_total = np.sum((true_values - mean_true) ** 2)
+                ss_residual = np.sum((true_values - pred_values) ** 2)
+                if ss_total != 0:
+                    r2 = 1 - (ss_residual / ss_total)
+                else:
+                    r2 = float('nan')
 
                 # Accuracy (如果提供了计算函数)
                 pred_list = pred_values.tolist()
-
-                # accuracy = calculate_acc_4h(true_values.tolist(), pred_list, cap)
                 accuracy = calculate_acc(true_values.tolist(), pred_list)
                 if accuracy is None:
                     logger.info(f"date:{date},样本:{len(group)},有效样本：{len(valid_data)},accuracy:{accuracy}")
@@ -91,7 +96,10 @@ def calculate_daily_metrics(csv_file_path, logger=None):
             'MSE': mse,
             'MAE': mae,
             'RMSE': rmse,
-            'NSE': nse,
+            'Pearson': pearson_corr,
+            'MRE': mre,
+            'MBE': mbe,
+            'R2': r2,
             'Accuracy': accuracy,
             'mean_true': np.mean(group['温度/气温']) if len(group) > 0 else float('nan'),
             'mean_pred': np.mean(group['pred'].dropna()) if group['pred'].dropna().size > 0 else float('nan')
@@ -107,8 +115,11 @@ def calculate_daily_metrics(csv_file_path, logger=None):
         overall_mse = valid_daily_df['MSE'].mean()
         overall_mae = valid_daily_df['MAE'].mean()
         overall_rmse = valid_daily_df['RMSE'].mean()
-        overall_nse = valid_daily_df['NSE'].mean()
-        overall_accuracy = valid_daily_df['Accuracy'].mean()  # 假设你的daily_results中有accuracy列
+        overall_pearson = valid_daily_df['Pearson'].mean()
+        overall_mre = valid_daily_df['MRE'].mean()
+        overall_mbe = valid_daily_df['MBE'].mean()
+        overall_r2 = valid_daily_df['R2'].mean()
+        overall_accuracy = valid_daily_df['Accuracy'].mean()
     else:
         print("没有有效的日数据用于计算总体指标")
 
@@ -120,7 +131,10 @@ def calculate_daily_metrics(csv_file_path, logger=None):
         'MSE': overall_mse,
         'MAE': overall_mae,
         'RMSE': overall_rmse,
-        'NSE': overall_nse,
+        'Pearson': overall_pearson,
+        'MRE': overall_mre,
+        'MBE': overall_mbe,
+        'R2': overall_r2,
         'Accuracy': overall_accuracy
     }
 
@@ -142,7 +156,7 @@ def print_daily_metrics(daily_metrics_df, overall_metrics, logger=None):
     table_content.append("每日指标详情:")
     table_content.append("=" * 120)
     table_content.append(
-        f"{'日期':<12} {'总样本':<8} {'NaN数':<8} {'有效数':<8} {'月最大':<10} {'MSE':<10} {'MAE':<10} {'RMSE':<10} {'NSE':<10} {'Accuracy':<10}")
+        f"{'日期':<12} {'总样本':<8} {'NaN数':<8} {'有效数':<8} {'月最大':<10} {'MSE':<10} {'MAE':<10} {'RMSE':<10} {'Pearson':<10} {'MRE':<10} {'MBE':<10} {'R2':<10} {'Accuracy':<10}")
     table_content.append("-" * 120)
 
     for _, row in daily_metrics_df.iterrows():
@@ -150,17 +164,17 @@ def print_daily_metrics(daily_metrics_df, overall_metrics, logger=None):
         date_str = str(row['date'])
         if pd.isna(row['MSE']):
             table_content.append(
-                f"{date_str:<12} {row['total_count']:<8} {row['nan_count']:<8} {row['valid_count']:<8} {row['monthly_cap']:<10.2f} {'--':<10} {'--':<10} {'--':<10} {'--':<10} {'--':<10}")
+                f"{date_str:<12} {row['total_count']:<8} {row['nan_count']:<8} {row['valid_count']:<8} {row['monthly_cap']:<10.2f} {'--':<10} {'--':<10} {'--':<10} {'--':<10} {'--':<10} {'--':<10} {'--':<10} {'--':<10}")
         else:
             acc_str = f"{row['Accuracy']:.4f}" if not pd.isna(row['Accuracy']) else "--"
             table_content.append(
-                f"{date_str:<12} {row['total_count']:<8} {row['nan_count']:<8} {row['valid_count']:<8} {row['monthly_cap']:<10.2f} {row['MSE']:<10.4f} {row['MAE']:<10.4f} {row['RMSE']:<10.4f} {row['NSE']:<10.4f} {acc_str:<10}")
+                f"{date_str:<12} {row['total_count']:<8} {row['nan_count']:<8} {row['valid_count']:<8} {row['monthly_cap']:<10.2f} {row['MSE']:<10.4f} {row['MAE']:<10.4f} {row['RMSE']:<10.4f} {row['Pearson']:<10.4f} {row['MRE']:<10.4f} {row['MBE']:<10.4f} {row['R2']:<10.4f} {acc_str:<10}")
 
     table_content.append("-" * 120)
     # print(overall_metrics['Accuracy'])
     overall_acc_str = f"{overall_metrics['Accuracy']:.4f}" if not pd.isna(overall_metrics['Accuracy']) else "--"
     table_content.append(
-        f"{'总体指标':<12} {overall_metrics['total_samples']:<8} {overall_metrics['total_nan_samples']:<8} {overall_metrics['total_valid_samples']:<8} {'--':<10} {overall_metrics['MSE']:<10.4f} {overall_metrics['MAE']:<10.4f} {overall_metrics['RMSE']:<10.4f} {overall_metrics['NSE']:<10.4f} {overall_acc_str:<10}")
+        f"{'总体指标':<12} {overall_metrics['total_samples']:<8} {overall_metrics['total_nan_samples']:<8} {overall_metrics['total_valid_samples']:<8} {'--':<10} {overall_metrics['MSE']:<10.4f} {overall_metrics['MAE']:<10.4f} {overall_metrics['RMSE']:<10.4f} {overall_metrics['Pearson']:<10.4f} {overall_metrics['MRE']:<10.4f} {overall_metrics['MBE']:<10.4f} {overall_metrics['R2']:<10.4f} {overall_acc_str:<10}")
     table_content.append("=" * 120)
 
     # 一次性输出完整表格
@@ -187,7 +201,10 @@ def print_metrics_summary(daily_metrics_df, overall_metrics, logger=None):
     summary_content.append(f"MSE: {overall_metrics['MSE']:.4f}")
     summary_content.append(f"MAE: {overall_metrics['MAE']:.4f}")
     summary_content.append(f"RMSE: {overall_metrics['RMSE']:.4f}")
-    summary_content.append(f"NSE: {overall_metrics['NSE']:.4f}")
+    summary_content.append(f"Pearson相关系数: {overall_metrics['Pearson']:.4f}")
+    summary_content.append(f"MRE: {overall_metrics['MRE']:.4f}")
+    summary_content.append(f"MBE: {overall_metrics['MBE']:.4f}")
+    summary_content.append(f"R²: {overall_metrics['R2']:.4f}")
     if not pd.isna(overall_metrics['Accuracy']):
         summary_content.append(f"Accuracy: {overall_metrics['Accuracy']:.4f}")
     else:
@@ -207,7 +224,13 @@ def print_metrics_summary(daily_metrics_df, overall_metrics, logger=None):
         summary_content.append(
             f"RMSE - 平均: {valid_days['RMSE'].mean():.4f}, 最大: {valid_days['RMSE'].max():.4f}, 最小: {valid_days['RMSE'].min():.4f}")
         summary_content.append(
-            f"NSE - 平均: {valid_days['NSE'].mean():.4f}, 最大: {valid_days['NSE'].max():.4f}, 最小: {valid_days['NSE'].min():.4f}")
+            f"Pearson - 平均: {valid_days['Pearson'].mean():.4f}, 最大: {valid_days['Pearson'].max():.4f}, 最小: {valid_days['Pearson'].min():.4f}")
+        summary_content.append(
+            f"MRE - 平均: {valid_days['MRE'].mean():.4f}, 最大: {valid_days['MRE'].max():.4f}, 最小: {valid_days['MRE'].min():.4f}")
+        summary_content.append(
+            f"MBE - 平均: {valid_days['MBE'].mean():.4f}, 最大: {valid_days['MBE'].max():.4f}, 最小: {valid_days['MBE'].min():.4f}")
+        summary_content.append(
+            f"R² - 平均: {valid_days['R2'].mean():.4f}, 最大: {valid_days['R2'].max():.4f}, 最小: {valid_days['R2'].min():.4f}")
 
         # Accuracy统计
         valid_acc_days = valid_days.dropna(subset=['Accuracy'])

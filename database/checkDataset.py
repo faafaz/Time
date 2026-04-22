@@ -150,7 +150,7 @@ def print_detailed_report(results):
 # 使用示例
 if __name__ == "__main__":
     # 替换为您的CSV文件路径
-    csv_file_path = r"datasets\train_dataset.csv"
+    csv_file_path = r"dataset\cur_dataset\wind_farm\farm2\train.csv"
     
     # 检查文件
     results = check_csv_file(csv_file_path)

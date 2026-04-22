@@ -12,5 +12,5 @@ n_input_features: 1
 dropout: 0.05
 
 # DualSignalModel特有参数
-freq_topk: 20    # 主频率成分提取的top-k频率
+hidden_dim: 64    # AFFM模块的隐藏层维度
 base_model: "iTransformer"  # 基础模型类型, 可选: iTransformer/其他支持的模型

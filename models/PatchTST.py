@@ -198,6 +198,7 @@ class Model(nn.Module):
         self.task_name = configs.task_name
         self.seq_len = configs.seq_len
         self.pred_len = configs.pred_len
+        self.in_num_features = configs.enc_in
         padding = stride
 
         # patching and embedding
@@ -244,7 +245,6 @@ class Model(nn.Module):
             self.head = FlattenHead(configs.enc_in, self.head_nf, configs.pred_len, head_dropout=configs.dropout)
 
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
-        x_enc = x_enc[:, :, 1:]  # 取功率
         # Normalization from Non-stationary Transformer
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
@@ -275,7 +275,7 @@ class Model(nn.Module):
                   (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         dec_out = dec_out + \
                   (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        return dec_out
+        return dec_out[:, :, self.in_num_features - 1:self.in_num_features]
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
         if self.task_name == 'ultra_short_term_forecast' or self.task_name == 'short_term_forecast' or self.task_name == 'long_term_forecast':

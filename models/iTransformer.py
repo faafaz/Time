@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from layers.Transformer_EncDec import Encoder, EncoderLayer
 from layers.SelfAttention_Family import FullAttention, AttentionLayer
+from utils.DFS import DifferentiableFeatureSelector
 
 
 class DataEmbedding_inverted(nn.Module):
@@ -36,6 +37,7 @@ class Model(nn.Module):
         # Embedding
         self.enc_embedding = DataEmbedding_inverted(configs.seq_len, configs.d_model, configs.dropout)
         # Encoder
+
         self.encoder = Encoder(
             [
                 EncoderLayer(
@@ -55,7 +57,7 @@ class Model(nn.Module):
         # Decoder
         if self.task_name == 'ultra_short_term_forecast' or self.task_name == 'short_term_forecast' or self.task_name == 'long_term_forecast':
             self.projection = nn.Linear(configs.d_model, configs.pred_len, bias=True)
-
+        self.dfs = DifferentiableFeatureSelector(self.channels)
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
         # (batch_size, seq_len, n_vars) -> (batch_size, seq_len, 1)
 
@@ -96,8 +98,10 @@ class Model(nn.Module):
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
         if self.task_name == 'ultra_short_term_forecast' or self.task_name == 'short_term_forecast' or self.task_name == 'long_term_forecast':
             # 只有当特征数大于1时才切片，避免单特征时维度消失
+            
             if x_enc.shape[2] > 1:
-                x_enc = x_enc[:, :, 1:]
+                x_enc = x_enc[:, :, 2:]
+                x_enc = self.dfs(x_enc)
             dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
             return dec_out[:, :, 0:1]  # [B, L, D]
 

@@ -40,7 +40,7 @@ parser.add_argument('--is_set_zero', action='store_true')
 # 公共参数 模型训练相关
 parser.add_argument("--task_name", type=str, default="ultra_short_term_forecast")  # 任务名称
 parser.add_argument("--seq_len", type=int, default=96, required=True)  # 输入序列时间步
-parser.add_argument("--pred_len", type=int, default=16, required=True)  # 预测时间步
+parser.add_argument("--pred_len", type=int, default=8, required=True)  # 预测时间步
 parser.add_argument("--label_len", type=int, default=0, required=True)  #
 parser.add_argument("--dropout", type=float, default=0.1, required=True)  # 丢失学习率
 parser.add_argument("--freq", type=str, default="60min", required=True)  # 数据分辨率

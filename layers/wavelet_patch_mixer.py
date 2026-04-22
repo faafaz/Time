@@ -191,7 +191,7 @@ class ResolutionBranch(nn.Module):
         
         # 对输入系数进行RevIN归一化
         x = x.transpose(1, 2)
-        x = self.revin(x, 'norm')
+        x = self.revin(x, 'n')
         x = x.transpose(1, 2)
         
         # 进行patch分割
@@ -210,7 +210,7 @@ class ResolutionBranch(nn.Module):
         out = self.head(out) 
         out = out.transpose(1, 2)
         # 对输出进行RevIN反归一化
-        out = self.revin(out, 'denorm')
+        out = self.revin(out, 'd')
         out = out.transpose(1, 2)
         return out
     

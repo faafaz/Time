@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from utils.RevIN import RevIN
+from utils.DFS import DifferentiableFeatureSelector
 
 """
     DLinear（Decomposition-Linear）是一个用于时间序列预测的模型，其核心思想是将时间序列分解为季节性（seasonal）和趋势性（trend）两个组件，然后分别用线性层进行预测，最后将结果合并。
@@ -190,11 +191,7 @@ class Model(nn.Module):
         self.pred_len = configs.pred_len
         self.decompsition = series_decomp(configs.moving_avg)
         self.individual = configs.individual
-        self.channels = configs.n_input_features
-    
-        # 添加特征融合层
-        self.feature_fusion_seasonal = nn.Linear(self.channels * self.seq_len, self.seq_len)
-        self.feature_fusion_trend = nn.Linear(self.channels * self.seq_len, self.seq_len)
+        self.channels = configs.enc_in
         
         # 修改线性层，使其输出单变量预测
         if self.individual:
@@ -206,71 +203,40 @@ class Model(nn.Module):
         else:
             self.Linear_Seasonal = nn.Linear(self.seq_len, self.pred_len)
             self.Linear_Trend = nn.Linear(self.seq_len, self.pred_len)
-        
-        # 添加输出投影层，将多变量输出转换为单变量
-        self.output_projection = nn.Linear(self.channels, 1)
-        self.revin = RevIN(self.channels, affine=True, subtract_last=False)
-
     def forward(self, x, x_mark_enc, x_dec, x_mark_dec, mask=None):
         # RevIn
         means = x.mean(1, keepdim=True).detach()
         x = x - means
         stdev = torch.sqrt(torch.var(x, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        x /= stdev
-
-        # print(f"输入x的形状: {x.shape}")
-        # print(f"输入x包含NaN: {torch.isnan(x).any()}")
-        # print(f"输入x包含Inf: {torch.isinf(x).any()}")
-        # print(f"输入x的范围: {x.min()} - {x.max()}")
-
-        # 不再排除任何变量，使用所有输入特征
-        x = x[:, :, 1:]  # 注释掉这行
+        x = x /  stdev
         
         # 分解为季节性和趋势成分
         seasonal_init, trend_init = self.decompsition(x)
         
         # 调整维度 [batch, seq_len, n_vars] -> [batch, n_vars, seq_len]
         seasonal_init, trend_init = seasonal_init.permute(0, 2, 1), trend_init.permute(0, 2, 1)
-        
-        # 特征融合 - 将多变量信息融合为单变量表示
-        batch_size, n_vars, seq_len = seasonal_init.shape
-        
-        # 展平季节性成分
-        seasonal_flat = seasonal_init.reshape(batch_size, -1)
-      
-        # 通过线性层融合特征
-        seasonal_fused = self.feature_fusion_seasonal(seasonal_flat)  # [batch, seq_len]
-      
-        # 展平趋势成分
-        trend_flat = trend_init.reshape(batch_size, -1)
-        # 通过线性层融合特征
-        trend_fused = self.feature_fusion_trend(trend_flat)  # [batch, seq_len]
 
-        # 添加维度 [batch, seq_len] -> [batch, 1, seq_len]
-        seasonal_fused = seasonal_fused.unsqueeze(1)
-        trend_fused = trend_fused.unsqueeze(1)
-        
+
         if self.individual:
-            seasonal_output = torch.zeros([seasonal_fused.size(0), seasonal_fused.size(1), self.pred_len],
-                                          dtype=seasonal_fused.dtype).to(seasonal_fused.device)
-            trend_output = torch.zeros([trend_fused.size(0), trend_fused.size(1), self.pred_len],
-                                       dtype=trend_fused.dtype).to(trend_fused.device)
-            
-            for i in range(1):  # 现在只有1个变量（融合后的）
-                seasonal_output[:, i, :] = self.Linear_Seasonal[i](seasonal_fused[:, i, :])
-                trend_output[:, i, :] = self.Linear_Trend[i](trend_fused[:, i, :])
+            # 创建预测结果矩阵
+            seasonal_output = torch.zeros([seasonal_init.size(0), seasonal_init.size(1), self.pred_len],
+                                          dtype=seasonal_init.dtype).to(seasonal_init.device)
+            trend_output = torch.zeros([trend_init.size(0), trend_init.size(1), self.pred_len],
+                                       dtype=trend_init.dtype).to(trend_init.device)
+            # 对多变量进行预测
+            for i in range(self.channels):
+                # 对第i个变量进行预测 self.Linear_Seasonal[i]表示第i个变量的季节线性层权重
+                seasonal_output[:, i, :] = self.Linear_Seasonal[i](seasonal_init[:, i, :])
+                trend_output[:, i, :] = self.Linear_Trend[i](trend_init[:, i, :])
         else:
-            # [batch, 1, seq_len] -> [batch, 1, pred_len]
-            seasonal_output = self.Linear_Seasonal(seasonal_fused)
-            trend_output = self.Linear_Trend(trend_fused)
-        
-        # 合并季节性和趋势预测
-        x = seasonal_output + trend_output  # [batch, 1, pred_len]
-        
-        # 调整维度 [batch, 1, pred_len] -> [batch, pred_len, 1]
+            # (batch_size,n_vars,seq_len) -> (batch_size,n_vars,pred_len)
+            seasonal_output = self.Linear_Seasonal(seasonal_init)
+            trend_output = self.Linear_Trend(trend_init)
+
+        x = seasonal_output + trend_output
         x = x.permute(0, 2, 1)
 
         # InReVin
         x = x * (stdev[:, 0, -1:].unsqueeze(1).repeat(1, self.pred_len, 1))
         x = x + (means[:, 0, -1:].unsqueeze(1).repeat(1, self.pred_len, 1))
-        return x  # 输出形状: [Batch, Output length, 1]
+        return x[:, :, self.channels - 1:self.channels]  # 输出形状: [Batch, Output length, 1]

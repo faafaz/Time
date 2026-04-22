@@ -19,7 +19,7 @@ class Model(nn.Module):
                              c_out = 1, 
                              seq_len = 96, 
                              out_len = 8, 
-                             d_model = 256,
+                             d_model = 128,
                             dropout = 0.05, 
                             embedding_dropout = 0.05, 
                             device = "cuda" if torch.cuda.is_available() else "cpu", 
@@ -28,7 +28,7 @@ class Model(nn.Module):
                             dfactor = 5, 
                             wavelet = "db2", 
                             level = 2, 
-                            patch_len = 16,
+                            patch_len = 24,
                             stride = 8, 
                             no_decomposition = False,
                             use_amp = False)

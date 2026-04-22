@@ -15,6 +15,7 @@ class Model(nn.Module):
         self.seq_len = configs.seq_len
         self.label_len = configs.label_len
         self.pred_len = configs.pred_len
+        self.channels = configs.enc_in
 
         # Decomp
         kernel_size = configs.moving_avg
@@ -84,10 +85,10 @@ class Model(nn.Module):
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec,
                 enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
-        x_enc = x_enc[:, :, 1:]  # 取功率
+        # x_enc = x_enc[:, :, 2:]  # 取功率
         # decomp init
         mean = torch.mean(x_enc, dim=1).unsqueeze(1).repeat(1, self.pred_len, 1)
-        zeros = torch.zeros([x_dec.shape[0], self.pred_len, x_dec.shape[2]], device=x_enc.device)
+        zeros = torch.zeros([x_dec.shape[0], self.pred_len, x_enc.shape[1]], device=x_enc.device)
         seasonal_init, trend_init = self.decomp(x_enc)
         # decoder input
         trend_init = trend_init[:, -self.label_len:, :]
@@ -105,4 +106,4 @@ class Model(nn.Module):
         dec_out = trend_part + seasonal_part
 
 
-        return dec_out[:, -self.pred_len:, :]  # [B, L, D]
+        return dec_out[:, :, self.channels - 1:self.channels]

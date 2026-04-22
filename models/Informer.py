@@ -17,7 +17,7 @@ class Model(nn.Module):
         self.task_name = configs.task_name
         self.pred_len = configs.pred_len
         self.label_len = configs.label_len
-
+        self.in_features = configs.enc_in
         # Embedding
         self.enc_embedding = DataEmbedding(configs.enc_in, configs.d_model, configs.embed_type, configs.freq,
                                            configs.dropout)
@@ -86,7 +86,6 @@ class Model(nn.Module):
         x_enc = x_enc - mean_enc
         std_enc = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5).detach()  # B x 1 x E
         x_enc = x_enc / std_enc
-
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         dec_out = self.dec_embedding(x_dec, x_mark_dec)
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
@@ -97,7 +96,6 @@ class Model(nn.Module):
         return dec_out  # [B, L, D]
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, mask=None):
-        x_enc = x_enc[:, :, 1:2]  # 取功率
         if self.task_name == 'ultra_short_term_forecast' or self.task_name == 'short_term_forecast':
             dec_out = self.short_forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
             return dec_out[:, -self.pred_len:, :]  # [B, L, D]

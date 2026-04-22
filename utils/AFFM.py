@@ -27,37 +27,34 @@ class AdaptiveFrequencyFilter(nn.Module):
         self.filter_generator = nn.Linear(hidden_dim, self.n_freq)
 
     def forward(self, x):
-        """
-        x: input time series (B, T, N)
-        returns:
-            filtered_x: 滤波后的时域信号（非平稳部分）
-            residual_x: 残差信号（平稳部分）
-        """
-        batch_size, _, n_channels = x.shape
+        # x: (B, T, N)
+        batch_size, seq_len, num_nodes = x.shape
         
-        # 1. 计算频域表示
-        if self.rfft:
-            x_freq = torch.fft.rfft(x, dim=1) # (B, F, N)
-        else:
-            x_freq = torch.fft.fft(x, dim=1)
+        # 1. 提取时域全局特征
+        global_features = self.meta_net(x.transpose(1, 2))  # (B, N, filter_dim)
         
-        # 2. 为每个instance和channel生成自适应滤波器
-        # 首先提取时域信号的全局特征
-        global_features = self.meta_net(x.transpose(1,2)) # (B, N, hidden_dim)
+        # 2. 生成基础高通滤波器（保留高频，衰减低频）
+        # 频率长度 = (seq_len // 2) + 1 (rfft的输出长度)
+        freq_length = (seq_len // 2) + 1
+        base_filter = torch.ones(batch_size, freq_length, num_nodes, device=x.device)
+        # 低频部分设为0（衰减），高频部分设为1（保留）
+        base_filter[:, :freq_length//2, :] = 0  # 低频部分衰减
         
-        # 为每个频率生成滤波系数 (B, N, F)
-        filter_coeff = torch.sigmoid(self.filter_generator(global_features)).transpose(1,2) # (B, F, N)
+        # 3. 通过时域特征生成自适应权重
+        filter_coeff = torch.sigmoid(self.filter_generator(global_features)).transpose(1, 2)  # (B, F, N)
         
-        # 3. 应用软滤波：不是完全去除，而是衰减
-        x_freq_filtered = x_freq * filter_coeff
+        # 4. 应用自适应高通滤波
+        # 确保整体是高通，但允许自适应调整
+        filter_coeff = base_filter * filter_coeff
         
-        # 4. 变换回时域
-        if self.rfft:
-            x_filtered = torch.fft.irfft(x_freq_filtered, dim=1, n=self.seq_len)
-        else:
-            x_filtered = torch.fft.ifft(x_freq_filtered, dim=1).real
+        # 5. 频域转换
+        x_freq = torch.fft.rfft(x, dim=1)  # (B, F, N)
         
-        # 5. 计算残差（平稳部分）
-        residual_x = x - x_filtered
+        # 6. 应用滤波
+        x_freq_filtered = x_freq * filter_coeff  # 保留高频
+        x_high_freq = torch.fft.irfft(x_freq_filtered, dim=1)  # (B, T, N)
         
-        return residual_x, x_filtered, filter_coeff
+        # 7. 低频部分 = 原始信号 - 高频部分
+        x_low_freq = x - x_high_freq
+        
+        return x_high_freq, x_low_freq, filter_coeff

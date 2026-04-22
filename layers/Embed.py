@@ -144,7 +144,7 @@ class TimeFeatureEmbedding(nn.Module):
         # 'w': 周 → 2个特征
         # 'd': 日 → 3个特征
         # 'b': 工作日 → 3个特征
-        freq_map = {"60min": 5, 'h': 4, 't': 5, 's': 6, 'm': 1, 'a': 1, 'w': 2, 'd': 3, 'b': 3}
+        freq_map = {"15min": 5 ,"60min": 5, 'h': 4, 't': 5, 's': 6, 'm': 1, 'a': 1, 'w': 2, 'd': 3, 'b': 3}
         d_inp = freq_map[freq]
         self.embed = nn.Linear(d_inp, d_model, bias=False)
 
@@ -272,7 +272,7 @@ class DataEmbedding_wo_pos_decoder(nn.Module):
     def forward(self, x, x_mark):
         x = self.value_embedding(x)
         x_mark = self.temporal_embedding(x_mark)
-        x_mark_expanded = x_mark.repeat(1, 7, 1)
+        x_mark_expanded = x_mark.repeat(1, 13, 1)
         x = x + x_mark_expanded
         return self.dropout(x)
 

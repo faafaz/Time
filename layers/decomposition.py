@@ -1,7 +1,7 @@
 # 导入必要的模块和类
 import torch
 import torch.nn as nn
-from pytorch_wavelets import DWT1DForward, DWT1DInverse  # 一维小波变换的前向和反向变换
+from third_party.pytorch_wavelets import DWT1DForward, DWT1DInverse  # 一维小波变换的前向和反向变换
 from utils.RevIN import RevIN  # RevIN归一化模块
 
 class Decomposition(nn.Module):
